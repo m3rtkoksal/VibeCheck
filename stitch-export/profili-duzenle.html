@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html class="light" lang="tr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Profili Düzenle - VibeCheck</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-dim": "#dad9df",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed": "#e2dfff",
+                        "on-tertiary-fixed-variant": "#005139",
+                        "on-background": "#1a1b1f",
+                        "on-secondary-fixed-variant": "#3631b4",
+                        "tertiary-fixed-dim": "#65dcab",
+                        "on-secondary-fixed": "#0c006a",
+                        "surface-bright": "#faf9fe",
+                        "on-tertiary-container": "#f5fff7",
+                        "surface": "#faf9fe",
+                        "outline-variant": "#e6bcbd",
+                        "primary-container": "#e51245",
+                        "surface-container": "#eeedf3",
+                        "primary": "#ba0034",
+                        "surface-container-highest": "#e3e2e7",
+                        "inverse-primary": "#ffb3b5",
+                        "secondary-container": "#6664e4",
+                        "tertiary-container": "#00855f",
+                        "surface-variant": "#e3e2e7",
+                        "primary-fixed-dim": "#ffb3b5",
+                        "on-error": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "on-secondary-container": "#fffbff",
+                        "secondary-fixed-dim": "#c2c1ff",
+                        "on-tertiary": "#ffffff",
+                        "tertiary": "#00694b",
+                        "on-primary-fixed-variant": "#920027",
+                        "inverse-on-surface": "#f1f0f5",
+                        "background": "#faf9fe",
+                        "surface-container-high": "#e9e7ed",
+                        "primary-fixed": "#ffdada",
+                        "on-primary-fixed": "#40000c",
+                        "on-error-container": "#93000a",
+                        "outline": "#916e6f",
+                        "on-tertiary-fixed": "#002115",
+                        "on-primary-container": "#fffbff",
+                        "surface-tint": "#be0036",
+                        "surface-container-low": "#f4f3f8",
+                        "error": "#ba1a1a",
+                        "inverse-surface": "#2f3034",
+                        "tertiary-fixed": "#82f9c6",
+                        "on-surface-variant": "#5d3f40",
+                        "secondary": "#4c4aca",
+                        "on-surface": "#1a1b1f",
+                        "error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "xl": "32px",
+                        "unit": "4px",
+                        "sm": "8px",
+                        "lg": "24px",
+                        "container-padding": "20px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "h2": ["Inter"],
+                        "h1": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h3": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "h2": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "h1": ["34px", {"lineHeight": "41px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["17px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "400"}],
+                        "h3": ["22px", {"lineHeight": "28px", "letterSpacing": "0em", "fontWeight": "600"}],
+                        "body-md": ["15px", {"lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .ios-shadow {
+            shadow-color: #000;
+            shadow-offset: {width: 0, height: 10};
+            shadow-opacity: 0.04;
+            shadow-radius: 20;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="bg-surface font-body-md text-on-background selection:bg-primary-container selection:text-on-primary-container">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full z-50 flex items-center justify-between px-6 h-16 bg-white dark:bg-zinc-950 border-b border-[#E5E5EA] dark:border-zinc-800">
+<button class="active:scale-95 transition-transform text-[#FF2D55] hover:opacity-80 flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="arrow_back_ios">arrow_back_ios</span>
+</button>
+<h1 class="font-inter font-semibold text-lg text-zinc-900 dark:text-white">Profili Düzenle</h1>
+<div class="w-6"></div> <!-- Spacer for centering -->
+</header>
+<main class="pt-20 pb-32 px-container-padding max-w-md mx-auto">
+<!-- Profile Picture Section -->
+<section class="flex flex-col items-center mb-xl">
+<div class="relative group cursor-pointer active:scale-95 transition-all">
+<div class="w-32 h-32 rounded-full overflow-hidden border-4 border-white ios-shadow bg-surface-container">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A close-up high-resolution portrait of a stylish young person with a confident expression, set against a minimalist and brightly lit modern studio background. The lighting is soft and flattering, emphasizing clean skin and vibrant energy. The overall aesthetic is premium and trend-forward, using a pure white and soft gray color palette with subtle hints of vibrant pink." src="https://lh3.googleusercontent.com/aida/ADBb0ujxgDyN4nggNDv6DIgmz_FxR2E_84-zDQmc533avHLo86ikN_p-oPhUtRkdtZfk7kx4LNe1P2OCusG3-t-S2w9xiyzbXNV06wh-ZgBABOq3u46TJKv2AeOMbWkagvD0vtHYRmiO_orupkFTXPO-AM5rwSVArnE9ZZkMfjo167Yclb_0igEkbC2RplQ19YGgRaYu6QJCKW2erH7r7RuCwAMeAr5-XkufawDoJOVcUOAEQIfPGDfoNWDP0J5lkWawAxjQ94_ylh3bhw"/>
+</div>
+<div class="absolute bottom-0 right-0 bg-[#FF2D55] text-white p-2 rounded-full shadow-lg border-2 border-white flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]" data-icon="photo_camera" style="font-variation-settings: 'FILL' 1;">photo_camera</span>
+</div>
+</div>
+<button class="mt-md text-[#FF2D55] font-inter font-semibold text-body-md hover:opacity-80">
+                Fotoğrafı Değiştir
+            </button>
+</section>
+<!-- Form Fields -->
+<div class="space-y-lg">
+<!-- Personal Info -->
+<div class="space-y-md">
+<div class="flex flex-col">
+<label class="text-label-caps font-label-caps text-on-surface-variant mb-xs ml-sm">AD SOYAD</label>
+<input class="w-full h-[50px] px-md rounded-xl bg-[#F2F2F7] border-none focus:ring-1.5 focus:ring-[#FF2D55] font-body-md text-on-surface placeholder-surface-dim transition-all" placeholder="Ad Soyad" type="text" value="Kaan Yılmaz"/>
+</div>
+<div class="flex flex-col">
+<label class="text-label-caps font-label-caps text-on-surface-variant mb-xs ml-sm">KULLANICI ADI</label>
+<div class="relative">
+<span class="absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant font-medium">@</span>
+<input class="w-full h-[50px] pl-[34px] pr-md rounded-xl bg-[#F2F2F7] border-none focus:ring-1.5 focus:ring-[#FF2D55] font-body-md text-on-surface placeholder-surface-dim transition-all" placeholder="username" type="text" value="kaanyilmaz"/>
+</div>
+</div>
+<div class="flex flex-col">
+<label class="text-label-caps font-label-caps text-on-surface-variant mb-xs ml-sm">E-POSTA</label>
+<input class="w-full h-[50px] px-md rounded-xl bg-[#F2F2F7] border-none focus:ring-1.5 focus:ring-[#FF2D55] font-body-md text-on-surface placeholder-surface-dim transition-all" placeholder="E-posta adresi" type="email" value="kaan.yilmaz@vibecheck.app"/>
+</div>
+</div>
+<!-- Linked Accounts -->
+<div class="pt-md">
+<h3 class="text-label-caps font-label-caps text-on-surface-variant mb-md ml-sm uppercase">BAĞLI HESAPLAR</h3>
+<div class="bg-white rounded-3xl ios-shadow overflow-hidden border border-[#F2F2F7]">
+<!-- Twitter (X) -->
+<div class="flex items-center justify-between p-md border-b border-[#F2F2F7] hover:bg-surface-container-low transition-colors cursor-pointer">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-black flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[20px]" data-icon="brand_awareness">brand_awareness</span>
+</div>
+<div>
+<p class="font-inter font-semibold text-body-md">Twitter (X)</p>
+<p class="text-on-surface-variant text-[13px]">@kaany_dev</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-surface-dim" data-icon="chevron_right">chevron_right</span>
+</div>
+<!-- Phone Number -->
+<div class="flex items-center justify-between p-md hover:bg-surface-container-low transition-colors cursor-pointer">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[20px]" data-icon="call" style="font-variation-settings: 'FILL' 1;">call</span>
+</div>
+<div>
+<p class="font-inter font-semibold text-body-md">Telefon Numarası</p>
+<p class="text-on-surface-variant text-[13px]">+90 5XX XXX XX 00</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-surface-dim" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+</div>
+<!-- Personality Badge (Bonus for Brand Identity) -->
+<div class="p-lg rounded-3xl bg-primary-container/10 border border-primary-container/20 flex items-center gap-md">
+<div class="w-12 h-12 rounded-2xl bg-primary-container flex items-center justify-center text-white shadow-lg shadow-primary-container/30">
+<span class="material-symbols-outlined" data-icon="psychology" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<div>
+<h4 class="font-inter font-bold text-[#FF2D55]">Vizyoner Kaşif</h4>
+<p class="text-on-surface-variant text-[13px]">Kişilik testin güncel değil. Yeni bir analiz yap!</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Action Button -->
+<div class="fixed bottom-0 w-full p-container-padding bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md pb-safe">
+<button class="w-full h-[56px] bg-[#FF2D55] text-white font-inter font-bold text-lg rounded-2xl ios-shadow active:scale-[0.98] transition-all hover:opacity-90">
+            Kaydet
+        </button>
+</div>
+<!-- Background Decoration -->
+<div class="fixed top-0 left-0 -z-10 w-full h-full opacity-20 pointer-events-none">
+<div class="absolute top-1/4 -left-20 w-64 h-64 bg-primary-container rounded-full blur-[100px]"></div>
+<div class="absolute bottom-1/3 -right-20 w-80 h-80 bg-secondary-container rounded-full blur-[120px]"></div>
+</div>
+</body></html>

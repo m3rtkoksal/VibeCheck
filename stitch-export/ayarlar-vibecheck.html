@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VibeCheck - Settings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "on-secondary-container": "#fffbff",
+                "on-background": "#1a1b1f",
+                "primary-fixed-dim": "#ffb3b5",
+                "on-tertiary-fixed": "#002115",
+                "surface-container-lowest": "#ffffff",
+                "surface-container-highest": "#e3e2e7",
+                "surface-variant": "#e3e2e7",
+                "error-container": "#ffdad6",
+                "on-secondary": "#ffffff",
+                "surface-container": "#eeedf3",
+                "on-surface-variant": "#5d3f40",
+                "outline-variant": "#e6bcbd",
+                "tertiary-fixed": "#82f9c6",
+                "primary-fixed": "#ffdada",
+                "surface-tint": "#be0036",
+                "surface": "#faf9fe",
+                "background": "#faf9fe",
+                "surface-container-high": "#e9e7ed",
+                "secondary": "#4c4aca",
+                "on-tertiary": "#ffffff",
+                "surface-container-low": "#f4f3f8",
+                "on-primary": "#ffffff",
+                "on-error-container": "#93000a",
+                "surface-bright": "#faf9fe",
+                "surface-dim": "#dad9df",
+                "secondary-container": "#6664e4",
+                "error": "#ba1a1a",
+                "on-error": "#ffffff",
+                "on-secondary-fixed": "#0c006a",
+                "tertiary-container": "#00855f",
+                "on-secondary-fixed-variant": "#3631b4",
+                "inverse-surface": "#2f3034",
+                "on-tertiary-fixed-variant": "#005139",
+                "primary": "#ba0034",
+                "outline": "#916e6f",
+                "on-surface": "#1a1b1f",
+                "tertiary": "#00694b",
+                "on-tertiary-container": "#f5fff7",
+                "on-primary-fixed-variant": "#920027",
+                "inverse-on-surface": "#f1f0f5",
+                "primary-container": "#e51245",
+                "on-primary-container": "#fffbff",
+                "secondary-fixed": "#e2dfff",
+                "secondary-fixed-dim": "#c2c1ff",
+                "on-primary-fixed": "#40000c",
+                "tertiary-fixed-dim": "#65dcab",
+                "inverse-primary": "#ffb3b5"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "gutter": "16px",
+                "lg": "24px",
+                "unit": "4px",
+                "sm": "8px",
+                "xl": "32px",
+                "container-padding": "20px",
+                "md": "16px",
+                "xs": "4px"
+        },
+        "fontFamily": {
+                "label-caps": ["Inter"],
+                "body-md": ["Inter"],
+                "h2": ["Inter"],
+                "body-lg": ["Inter"],
+                "h3": ["Inter"],
+                "h1": ["Inter"]
+        },
+        "fontSize": {
+                "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                "body-md": ["15px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }],
+                "h2": ["28px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                "body-lg": ["17px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+                "h3": ["22px", { "lineHeight": "28px", "letterSpacing": "0em", "fontWeight": "600" }],
+                "h1": ["34px", { "lineHeight": "41px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+        }
+      }
+    }
+  }
+</script>
+<style>
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom, 20px); }
+</style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface font-body-md min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 border-b border-gray-100 dark:border-gray-800 bg-white/80 backdrop-blur-xl dark:bg-gray-900/80 shadow-sm dark:shadow-none flex justify-between items-center px-5 h-16">
+<button class="active:scale-95 transition-transform duration-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-full p-2 text-gray-900 dark:text-gray-50">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<div class="text-xl font-black tracking-tighter text-rose-500 dark:text-rose-400">VibeCheck</div>
+<button class="active:scale-95 transition-transform duration-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-full p-2 text-gray-900 dark:text-gray-50">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</header>
+<!-- Main Content -->
+<main class="pt-[88px] pb-32 px-container-padding max-w-lg mx-auto">
+<!-- Profile Section -->
+<section class="flex flex-col items-center justify-center mb-xl pt-lg">
+<div class="w-24 h-24 rounded-full overflow-hidden mb-md shadow-[0_10px_20px_rgba(0,0,0,0.04)] ring-4 ring-white">
+<img alt="A polished, modern 3D avatar of an optimistic female character looking slightly upwards. The background is a clean, bright, and airy minimalist setting with high-key lighting. Soft shadows highlight the smooth textures and modern aesthetic." class="w-full h-full object-cover" data-alt="A polished, modern 3D avatar of an optimistic female character looking slightly upwards. The background is a clean, bright, and airy minimalist setting with high-key lighting. Soft shadows highlight the smooth textures and modern aesthetic." src="https://lh3.googleusercontent.com/aida/ADBb0ugJRcDbI9dL7L5WQ0FsrvGym0bJtvHZ-dvc7X7DnCyVCcdJMhCng43_7eIzDsNObdoainHO4SuxYK66VTr_yc1IJAR_RxPRaT-8uOzp_QKUR4xTgxi3mY_iILIXQPrjD0xGWmbmrpqd-vDi2WhqDP2cVjMIseTm9YDAaDNlY0Wy3qqElknjwrLXBNo6YAiQXZHsTqIqdul6VUGE3NGLoMEaB-9jZYntfGOgh1utdyiijlDsNLsxGCdC_RQ"/>
+</div>
+<h2 class="font-h2 text-on-surface">Alex Mercer</h2>
+<p class="font-body-md text-on-surface-variant mt-unit">alex.mercer@example.com</p>
+<button class="mt-md bg-surface-container text-on-surface font-label-caps px-4 py-2 rounded-full active:scale-95 transition-transform duration-200">
+        Profili Düzenle
+      </button>
+</section>
+<!-- Settings List -->
+<section class="bg-surface-container-lowest rounded-[24px] shadow-[0_10px_30px_rgba(0,0,0,0.02)] overflow-hidden border border-surface-variant/50">
+<ul class="flex flex-col">
+<!-- Twitter Hesabı Bağla -->
+<li class="border-b border-surface-variant/30 last:border-0">
+<button class="w-full flex items-center justify-between p-md hover:bg-surface-container-low transition-colors active:bg-surface-container">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-[#1DA1F2]/10 flex items-center justify-center text-[#1DA1F2]">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">share</span>
+</div>
+<span class="font-body-lg text-on-surface">Twitter Hesabı Bağla</span>
+</div>
+<span class="material-symbols-outlined text-surface-dim">chevron_right</span>
+</button>
+</li>
+<!-- Abonelik Yönetimi -->
+<li class="border-b border-surface-variant/30 last:border-0">
+<button class="w-full flex items-center justify-between p-md hover:bg-surface-container-low transition-colors active:bg-surface-container">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<span class="font-body-lg text-on-surface">Abonelik Yönetimi</span>
+</div>
+<span class="material-symbols-outlined text-surface-dim">chevron_right</span>
+</button>
+</li>
+<!-- Tema Seçimi (Açık/Koyu) -->
+<li class="border-b border-surface-variant/30 last:border-0">
+<button class="w-full flex items-center justify-between p-md hover:bg-surface-container-low transition-colors active:bg-surface-container">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">contrast</span>
+</div>
+<span class="font-body-lg text-on-surface">Tema Seçimi (Açık/Koyu)</span>
+</div>
+<div class="flex items-center gap-sm">
+<span class="font-body-md text-on-surface-variant">Açık</span>
+<span class="material-symbols-outlined text-surface-dim">chevron_right</span>
+</div>
+</button>
+</li>
+<!-- Yardım ve Destek -->
+<li class="border-b border-surface-variant/30 last:border-0">
+<button class="w-full flex items-center justify-between p-md hover:bg-surface-container-low transition-colors active:bg-surface-container">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-tertiary/10 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">help</span>
+</div>
+<span class="font-body-lg text-on-surface">Yardım ve Destek</span>
+</div>
+<span class="material-symbols-outlined text-surface-dim">chevron_right</span>
+</button>
+</li>
+<!-- Çıkış Yap -->
+<li class="border-b border-surface-variant/30 last:border-0 mt-2">
+<button class="w-full flex items-center justify-between p-md hover:bg-error/5 transition-colors active:bg-error/10">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-error/10 flex items-center justify-center text-error">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">logout</span>
+</div>
+<span class="font-body-lg text-error">Çıkış Yap</span>
+</div>
+</button>
+</li>
+</ul>
+</section>
+<!-- Version Info -->
+<div class="text-center mt-xl mb-xl">
+<p class="font-label-caps text-on-surface-variant/60">Versiyon 1.0.2 (Build 42)</p>
+</div>
+</main>
+</body></html>
