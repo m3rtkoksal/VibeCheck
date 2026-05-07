@@ -69,3 +69,8 @@ node_modules/
 .dataconnect
 .DS_Store
 .agents/
+
+# Xcode user-specific workspace state
+*.xcuserstate
+xcuserdata/
+*.xcuserdatad/
