@@ -52,10 +52,19 @@ final class CompatibilityAnalysisResultViewModel: ObservableObject {
     @Published var showedStatus = false
     @Published var redFlag = false
     @Published var showSavedAlert = false
+    @Published private(set) var hasSavedRating = false
+    @Published private(set) var receivedRating: DateEvaluation?
 
     init(output: AIOnlyAnalysisOutput) {
         self.output = output
+        hasSavedRating = output.myRating != nil
+        receivedRating = output.receivedRating
         applyExistingRatingIfAny()
+        refreshReceivedRatingFromHistory()
+    }
+
+    var canSaveRating: Bool {
+        !hasSavedRating
     }
 
     var reasonItems: [ResultReasonItem] {
@@ -171,12 +180,22 @@ final class CompatibilityAnalysisResultViewModel: ObservableObject {
     }
 
     func saveRating() {
+        guard canSaveRating else { return }
         let rating = buildDateEvaluation()
-        CompatibilityHistoryStore.updateRating(
-            historyId: output.historyId,
-            partnerQuery: output.partnerQuery,
-            rating: rating
+        CompatibilityHistoryStore.append(
+            from: AIOnlyAnalysisOutput(
+                partnerQuery: output.partnerQuery,
+                ai: output.ai,
+                myRating: rating,
+                receivedRating: output.receivedRating
+            )
         )
+        Task {
+            await CompatibilityHistoryStore.publishMyRating(partnerQuery: output.partnerQuery, rating: rating)
+            await CompatibilityHistoryStore.syncReceivedRatings()
+            refreshReceivedRatingFromHistory()
+        }
+        hasSavedRating = true
         showSavedAlert = true
     }
 
@@ -214,5 +233,31 @@ final class CompatibilityAnalysisResultViewModel: ObservableObject {
         sexualFocusScore = Double(r.sexualFocusScore)
         showedStatus = r.showedStatus
         redFlag = r.redFlag
+    }
+
+    func refreshReceivedRating() {
+        Task {
+            await CompatibilityHistoryStore.syncReceivedRatings()
+            await MainActor.run {
+                refreshReceivedRatingFromHistory()
+            }
+        }
+    }
+
+    private func refreshReceivedRatingFromHistory() {
+        let key = output.partnerQuery.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !key.isEmpty else {
+            receivedRating = output.receivedRating
+            return
+        }
+
+        let latest = CompatibilityHistoryStore
+            .load()
+            .filter { $0.partnerQuery.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == key }
+            .sorted { $0.createdAt > $1.createdAt }
+            .compactMap(\.receivedRating)
+            .first
+
+        receivedRating = latest ?? output.receivedRating
     }
 }
