@@ -3,6 +3,7 @@ import SwiftUI
 struct OnboardingView: View {
     @Binding var hasCompletedOnboarding: Bool
     @State private var currentPage = 0
+    @Environment(\.colorScheme) private var colorScheme
 
     private let pages: [OnboardingPage] = [
         OnboardingPage(
@@ -66,11 +67,12 @@ struct OnboardingView: View {
 
                         Text(page.title)
                             .font(.title2.bold())
+                            .foregroundStyle(titleColor)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 24)
 
                         Text(page.subtitle)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(subtitleColor)
                             .multilineTextAlignment(.center)
                             .frame(maxWidth: 340)
                             .padding(.horizontal, 24)
@@ -114,6 +116,14 @@ struct OnboardingView: View {
         } else {
             hasCompletedOnboarding = true
         }
+    }
+
+    private var titleColor: Color {
+        colorScheme == .dark ? Color.black.opacity(0.9) : .primary
+    }
+
+    private var subtitleColor: Color {
+        colorScheme == .dark ? Color.black.opacity(0.72) : .secondary
     }
 
     private var onboardingBackground: some View {

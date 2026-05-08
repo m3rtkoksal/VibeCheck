@@ -12,7 +12,8 @@ struct PrivateNoteView: View {
     @State private var showIdeaPicker = false
     @State private var promptCopied = false
     @Environment(\.dismiss) private var dismiss
-    private let maxLength = 3000
+    @Environment(\.colorScheme) private var colorScheme
+    private let maxLength = 10000
 
     var body: some View {
         ZStack {
@@ -26,7 +27,7 @@ struct PrivateNoteView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Soru \(totalQuestions) / \(totalQuestions) Son Soru")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(topSubtitleColor)
 
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {
@@ -42,7 +43,7 @@ struct PrivateNoteView: View {
 
                 Text("AI karakter özetini buraya yapıştır.")
                     .font(.system(size: 28, weight: .bold))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(topTitleColor)
                     .padding(.top, 8)
 
                 Text(
@@ -50,7 +51,7 @@ struct PrivateNoteView: View {
                     + "Gelen karakter analizini bu alana yapıştır."
                 )
                 .font(.system(size: 15))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(topSubtitleColor)
 
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Hazır Prompt")
@@ -153,11 +154,7 @@ struct PrivateNoteView: View {
         .navigationBarTitleDisplayMode(.inline)
         .background(
             LinearGradient(
-                colors: [
-                    Color(hex: 0xFFF6F7),
-                    Color(hex: 0xF3F6FF),
-                    Color(hex: 0xFFFFFF),
-                ],
+                colors: backgroundGradientColors,
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
@@ -234,6 +231,30 @@ struct PrivateNoteView: View {
         ProfileCategory.allCases.count + 1
     }
 
+    private var topTitleColor: Color {
+        colorScheme == .dark ? Color.white.opacity(0.96) : .primary
+    }
+
+    private var topSubtitleColor: Color {
+        colorScheme == .dark ? Color.white.opacity(0.72) : .secondary
+    }
+
+    private var backgroundGradientColors: [Color] {
+        if colorScheme == .dark {
+            return [
+                Color(hex: 0x0A0B12),
+                Color(hex: 0x121423),
+                Color(hex: 0x1A1222),
+            ]
+        } else {
+            return [
+                Color(hex: 0xFFF6F7),
+                Color(hex: 0xF3F6FF),
+                Color(hex: 0xFFFFFF),
+            ]
+        }
+    }
+
     private var noteIdeas: [(title: String, seed: String)] {
         [
             (
@@ -306,7 +327,7 @@ private final class NoteSpeechTranscriber: ObservableObject {
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     private var recognitionTask: SFSpeechRecognitionTask?
     private var baseText = ""
-    private var maxLength = 300
+    private var maxLength = 10000
 
     func toggleRecording(currentText: String, maxLength: Int) {
         if isRecording {
