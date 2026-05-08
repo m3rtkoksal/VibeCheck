@@ -3,11 +3,14 @@ import FirebaseFirestore
 
 /// Giriş tamamlandıktan ve ilk kurulum pipeline’ı bittikten sonra görünen ana kabuk (tab’lar).
 struct MainTabView: View {
+    @State private var selectedTab: MainTab = .history
+
     var body: some View {
-        TabView {
+        TabView(selection: $selectedTab) {
             NavigationStack {
                 ProfileEditorView()
             }
+            .tag(MainTab.profile)
             .tabItem {
                 Label("Profil", systemImage: "person.circle.fill")
             }
@@ -15,6 +18,7 @@ struct MainTabView: View {
             NavigationStack {
                 CompatibilityAnalysisView()
             }
+            .tag(MainTab.compatibility)
             .tabItem {
                 Label("Uyum", systemImage: "heart.text.square.fill")
             }
@@ -22,6 +26,7 @@ struct MainTabView: View {
             NavigationStack {
                 CompatibilityHistoryView()
             }
+            .tag(MainTab.history)
             .tabItem {
                 Label("Geçmiş", systemImage: "clock.arrow.trianglehead.counterclockwise.rotate.90")
             }
@@ -29,6 +34,7 @@ struct MainTabView: View {
             NavigationStack {
                 SettingsTabView()
             }
+            .tag(MainTab.settings)
             .tabItem {
                 Label("Ayarlar", systemImage: "gearshape.fill")
             }
@@ -37,11 +43,20 @@ struct MainTabView: View {
     }
 }
 
+private enum MainTab: Hashable {
+    case profile
+    case compatibility
+    case history
+    case settings
+}
+
 private struct CompatibilityHistoryView: View {
     @State private var items: [CompatibilityHistoryItem] = CompatibilityHistoryStore.load()
     @State private var visibleCount = 8
     @State private var isEditing = false
     @State private var partnerPhotoURLs: [UUID: String] = [:]
+    @State private var partnerDisplayNames: [UUID: String] = [:]
+    @State private var sortOption: HistorySortOption = .latest
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
@@ -49,15 +64,28 @@ private struct CompatibilityHistoryView: View {
             VStack(alignment: .leading, spacing: 24) {
                 summaryInsights
 
-                Text("Son Analizler")
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundStyle(.primary)
+                HStack {
+                    Text("Son Analizler")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Menu {
+                        sortOptionButton(.latest, title: "En Yeni")
+                        sortOptionButton(.aiScore, title: "AI Uyum")
+                        sortOptionButton(.myScore, title: "Senin Puanın")
+                        sortOptionButton(.receivedScore, title: "Sana Verilen")
+                    } label: {
+                        Image(systemName: "arrow.up.arrow.down.circle.fill")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(Color(hex: 0xE51245))
+                    }
+                }
 
                 if items.isEmpty {
                     emptyStateCard
                 } else {
                     VStack(spacing: 12) {
-                        ForEach(Array(items.prefix(visibleCount))) { item in
+                        ForEach(Array(sortedItems.prefix(visibleCount))) { item in
                             if isEditing {
                                 editingHistoryCard(item: item)
                             } else {
@@ -90,10 +118,10 @@ private struct CompatibilityHistoryView: View {
                         }
                     }
 
-                    if visibleCount < items.count {
+                    if visibleCount < sortedItems.count {
                         Button {
                             withAnimation(.easeInOut(duration: 0.2)) {
-                                visibleCount = min(visibleCount + 8, items.count)
+                                visibleCount = min(visibleCount + 8, sortedItems.count)
                             }
                         } label: {
                             Text("Daha Fazla Göster")
@@ -129,10 +157,12 @@ private struct CompatibilityHistoryView: View {
         .onAppear {
             reloadHistory()
             Task { await preloadPartnerPhotos() }
+            syncReceivedRatingsFromCloud()
         }
         .onReceive(NotificationCenter.default.publisher(for: CompatibilityHistoryStore.didUpdateNotification)) { _ in
             reloadHistory()
             Task { await preloadPartnerPhotos() }
+            syncReceivedRatingsFromCloud()
         }
         .background(
             LinearGradient(
@@ -147,6 +177,52 @@ private struct CompatibilityHistoryView: View {
     private func reloadHistory() {
         items = CompatibilityHistoryStore.load()
         visibleCount = min(max(visibleCount, 8), max(items.count, 8))
+    }
+
+    private func syncReceivedRatingsFromCloud() {
+        Task {
+            await CompatibilityHistoryStore.syncReceivedRatings()
+            reloadHistory()
+        }
+    }
+
+    private var sortedItems: [CompatibilityHistoryItem] {
+        switch sortOption {
+        case .latest:
+            return items.sorted { $0.createdAt > $1.createdAt }
+        case .aiScore:
+            return items.sorted {
+                if $0.ai.percent == $1.ai.percent { return $0.createdAt > $1.createdAt }
+                return $0.ai.percent > $1.ai.percent
+            }
+        case .myScore:
+            return items.sorted {
+                let lhs = $0.myRating?.overallScore ?? -1
+                let rhs = $1.myRating?.overallScore ?? -1
+                if lhs == rhs { return $0.createdAt > $1.createdAt }
+                return lhs > rhs
+            }
+        case .receivedScore:
+            return items.sorted {
+                let lhs = $0.receivedRating?.overallScore ?? -1
+                let rhs = $1.receivedRating?.overallScore ?? -1
+                if lhs == rhs { return $0.createdAt > $1.createdAt }
+                return lhs > rhs
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func sortOptionButton(_ option: HistorySortOption, title: String) -> some View {
+        Button {
+            sortOption = option
+        } label: {
+            if sortOption == option {
+                Label(title, systemImage: "checkmark")
+            } else {
+                Text(title)
+            }
+        }
     }
 
     private var historyBackgroundColors: [Color] {
@@ -172,6 +248,15 @@ private struct CompatibilityHistoryView: View {
                 partnerPhotoURLs[item.id] = url
             } else {
                 partnerPhotoURLs[item.id] = ""
+            }
+        }
+
+        for item in items where partnerDisplayNames[item.id] == nil {
+            if let name = try? await fetchPartnerDisplayName(partnerQuery: item.partnerQuery),
+               !name.isEmpty {
+                partnerDisplayNames[item.id] = name
+            } else {
+                partnerDisplayNames[item.id] = sanitizedName(item.partnerQuery)
             }
         }
     }
@@ -274,9 +359,9 @@ private struct CompatibilityHistoryView: View {
         HStack(spacing: 12) {
             partnerAvatar(for: item)
 
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .top) {
-                    Text(sanitizedName(item.partnerQuery))
+                    Text(partnerDisplayNames[item.id] ?? sanitizedName(item.partnerQuery))
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(.primary)
                         .lineLimit(1)
@@ -286,19 +371,21 @@ private struct CompatibilityHistoryView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                HStack(spacing: 10) {
-                    metricColumn(
-                        label: "AI UYUMU",
+                HStack(spacing: 8) {
+                    metricChip(
+                        label: "AI Uyum",
                         value: "%\(item.ai.percent)",
                         tint: Color(hex: 0xBA0034)
                     )
-                    Rectangle()
-                        .fill(Color(.separator).opacity(0.3))
-                        .frame(width: 1, height: 24)
-                    metricColumn(
-                        label: "PUANLAMA",
-                        value: item.myRating.map { "%\($0.overallScore)" } ?? "--",
+                    metricChip(
+                        label: "Senin Puanın",
+                        value: item.myRating.map { "%\($0.overallScore)" } ?? "Bekleniyor",
                         tint: Color(hex: 0x4C4ACA)
+                    )
+                    metricChip(
+                        label: "Sana Verilen",
+                        value: item.receivedRating.map { "%\($0.overallScore)" } ?? "Bekleniyor",
+                        tint: Color(hex: 0x00855F)
                     )
                 }
             }
@@ -307,7 +394,7 @@ private struct CompatibilityHistoryView: View {
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(Color(.tertiaryLabel))
         }
-        .padding(14)
+        .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .fill(Color(.systemBackground))
@@ -335,15 +422,50 @@ private struct CompatibilityHistoryView: View {
         }
     }
 
-    private func metricColumn(label: String, value: String, tint: Color) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
+    private func metricChip(label: String, value: String, tint: Color) -> some View {
+        let isPercentageValue = value.hasPrefix("%")
+
+        return VStack(alignment: .leading, spacing: 0) {
             Text(label)
-                .font(.system(size: 10, weight: .bold))
+                .font(.system(size: 10, weight: .semibold))
                 .foregroundStyle(tint)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+                .frame(height: 14, alignment: .topLeading)
+
             Text(value)
-                .font(.system(size: 15, weight: .bold))
-                .foregroundStyle(.primary)
+                .font(
+                    isPercentageValue
+                        ? .system(size: 30, weight: .black, design: .rounded)
+                        : .system(size: 12, weight: .semibold)
+                )
+                .foregroundStyle(isPercentageValue ? .primary : .secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(isPercentageValue ? 0.45 : 0.55)
+                .allowsTightening(true)
+                .padding(.bottom, isPercentageValue ? 0 : 3)
+                .frame(maxWidth: .infinity, minHeight: 48, alignment: .bottomLeading)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(height: 84, alignment: .leading)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 10)
+        .background(
+            LinearGradient(
+                colors: [
+                    tint.opacity(0.16),
+                    tint.opacity(0.05),
+                    Color(.secondarySystemBackground),
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(Color(.separator).opacity(0.18), lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
     private func partnerAvatar(for item: CompatibilityHistoryItem) -> some View {
@@ -397,6 +519,18 @@ private struct CompatibilityHistoryView: View {
     }
 
     private func fetchPartnerPhotoURL(partnerQuery: String) async throws -> String? {
+        guard let data = try await fetchDiscoverabilityData(partnerQuery: partnerQuery) else { return nil }
+        return resolvePhotoURL(from: data)
+    }
+
+    private func fetchPartnerDisplayName(partnerQuery: String) async throws -> String? {
+        guard let data = try await fetchDiscoverabilityData(partnerQuery: partnerQuery),
+              let fullName = data["fullName"] as? String else { return nil }
+        let trimmed = fullName.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
+    private func fetchDiscoverabilityData(partnerQuery: String) async throws -> [String: Any]? {
         let db = Firestore.firestore()
         let q = partnerQuery.trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -417,7 +551,7 @@ private struct CompatibilityHistoryView: View {
                 .limit(to: 1)
                 .getDocuments()
             if let data = snap.documents.first?.data() {
-                return resolvePhotoURL(from: data)
+                return data
             }
         }
 
@@ -430,7 +564,7 @@ private struct CompatibilityHistoryView: View {
                 .limit(to: 1)
                 .getDocuments()
             if let data = snap.documents.first?.data() {
-                return resolvePhotoURL(from: data)
+                return data
             }
         }
 
@@ -449,6 +583,13 @@ private struct CompatibilityHistoryView: View {
         }
         return nil
     }
+}
+
+private enum HistorySortOption {
+    case latest
+    case aiScore
+    case myScore
+    case receivedScore
 }
 
 private extension Color {

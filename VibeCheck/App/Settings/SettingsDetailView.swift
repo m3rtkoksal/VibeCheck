@@ -42,7 +42,8 @@ struct SettingsDetailView: View {
                                     iconBackground: .black,
                                     iconForeground: .white,
                                     title: "Twitter (X)",
-                                    subtitle: xRowSubtitle
+                                    subtitle: xRowSubtitle,
+                                    isConnected: vm.xVerified
                                 ) {
                                     vm.showAlert = false
                                     vm.alertMessage = ""
@@ -57,7 +58,8 @@ struct SettingsDetailView: View {
                                     iconBackground: .green,
                                     iconForeground: .white,
                                     title: "Telefon Numarası",
-                                    subtitle: phoneRowSubtitle
+                                    subtitle: phoneRowSubtitle,
+                                    isConnected: vm.phoneVerified
                                 ) {
                                     showLinkedPhoneSheet = true
                                 }
@@ -69,6 +71,37 @@ struct SettingsDetailView: View {
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                    .stroke(Color(.separator).opacity(0.20), lineWidth: 1)
+                            )
+                            .padding(.horizontal, 20)
+                        }
+
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("GÖRÜNEN AD")
+                                .font(.system(size: 12, weight: .semibold))
+                                .textCase(.uppercase)
+                                .tracking(0.8)
+                                .foregroundStyle(.secondary)
+                                .padding(.horizontal, 20)
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                TextField("İsim Soyad", text: $vm.fullName)
+                                    .textInputAutocapitalization(.words)
+                                    .autocorrectionDisabled(true)
+                                    .font(.system(size: 16, weight: .semibold))
+
+                                Text("Geçmiş listelerinde kullanıcı adın yerine bu isim görünür.")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(16)
+                            .background(
+                                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                    .fill(Color(.systemBackground))
+                                    .shadow(color: Color.black.opacity(0.04), radius: 12, x: 0, y: 6)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20, style: .continuous)
                                     .stroke(Color(.separator).opacity(0.20), lineWidth: 1)
                             )
                             .padding(.horizontal, 20)
@@ -102,6 +135,9 @@ struct SettingsDetailView: View {
             Task { await vm.syncDiscoverabilityIndex() }
         }
         .onChange(of: vm.xDiscoverable) { _, _ in
+            Task { await vm.syncDiscoverabilityIndex() }
+        }
+        .onChange(of: vm.fullName) { _, _ in
             Task { await vm.syncDiscoverabilityIndex() }
         }
         .confirmationDialog("Tema Seçimi", isPresented: $showThemePicker, titleVisibility: .visible) {
@@ -485,6 +521,7 @@ struct SettingsDetailView: View {
         iconForeground: Color,
         title: String,
         subtitle: String,
+        isConnected: Bool,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
@@ -497,10 +534,26 @@ struct SettingsDetailView: View {
                 }
                 .frame(width: 40, height: 40)
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(.primary)
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 8) {
+                        Text(title)
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(.primary)
+
+                        Text(isConnected ? "Bağlı" : "Bağlı Değil")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(isConnected ? Color.green : .secondary)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(
+                                Capsule(style: .continuous)
+                                    .fill(
+                                        isConnected
+                                            ? Color.green.opacity(0.12)
+                                            : Color(.tertiarySystemFill)
+                                    )
+                            )
+                    }
                     Text(subtitle)
                         .font(.system(size: 13, weight: .regular))
                         .foregroundStyle(.secondary)

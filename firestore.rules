@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    match /discoverabilityUsers/{userId} {
+      allow read: if signedIn();
+      allow create, update, delete: if signedIn()
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly([
+          'vibeCode',
+          'phoneE164',
+          'xUsernameLower',
+          'fullName',
+          'updatedAt'
+        ]);
+    }
+
+    match /compatibilityRatings/{ratingId} {
+      allow create: if signedIn()
+        && request.resource.data.raterUID == request.auth.uid
+        && request.resource.data.targetUID is string
+        && request.resource.data.pairKey is string
+        && request.resource.data.overallScore is int
+        && request.resource.data.egoScore is int
+        && request.resource.data.sincerityScore is int
+        && request.resource.data.intentScore is int
+        && request.resource.data.flowScore is int
+        && request.resource.data.sexualFocusScore is int
+        && request.resource.data.showedStatus is bool
+        && request.resource.data.redFlag is bool;
+
+      allow read: if signedIn()
+        && (
+          resource.data.targetUID == request.auth.uid
+          || resource.data.raterUID == request.auth.uid
+        );
+
+      allow update, delete: if false;
+    }
+  }
+}

@@ -24,7 +24,7 @@ struct CompatibilityAnalysisResultView: View {
             .tabViewStyle(.page(indexDisplayMode: .never))
         }
         .safeAreaInset(edge: .bottom) {
-            if vm.selectedTab == .degerlendirme {
+            if vm.selectedTab == .degerlendirme, vm.canSaveRating {
                 Button {
                     vm.saveRating()
                 } label: {
@@ -50,6 +50,7 @@ struct CompatibilityAnalysisResultView: View {
         }
         .onAppear {
             vm.loadAvatar(photoSaved: photoSaved)
+            vm.refreshReceivedRating()
         }
         .onChange(of: photoSaved) { _, _ in
             vm.loadAvatar(photoSaved: photoSaved)
@@ -301,6 +302,7 @@ struct CompatibilityAnalysisResultView: View {
                         .shadow(color: Color.black.opacity(0.04), radius: 12, x: 0, y: 6)
                 )
             }
+            .disabled(!vm.canSaveRating)
             .padding(.horizontal, 16)
             .padding(.bottom, 110)
         }
@@ -318,7 +320,7 @@ struct CompatibilityAnalysisResultView: View {
                     .font(.system(size: 15))
                     .foregroundStyle(.secondary)
 
-                if let r = vm.output.receivedRating {
+                if let r = vm.receivedRating {
                     readonlySliderCard(
                         title: "Egosu ortamı bastırdı mı?",
                         value: r.egoScore,

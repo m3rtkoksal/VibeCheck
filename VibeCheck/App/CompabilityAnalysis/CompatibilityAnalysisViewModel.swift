@@ -36,14 +36,7 @@ final class CompatibilityAnalysisViewModel: ObservableObject {
                 partnerQuery: partnerDisplay,
                 ai: aiResult
             )
-            let saved = CompatibilityHistoryStore.append(from: result)
-            output = AIOnlyAnalysisOutput(
-                id: result.id,
-                partnerQuery: result.partnerQuery,
-                ai: result.ai,
-                historyId: saved.id,
-                myRating: saved.myRating
-            )
+            output = result
         } catch {
             if error is VibeCodeError || (error as NSError).domain == "Compatibility" {
                 errorText = friendlyPartnerResolveError(error)

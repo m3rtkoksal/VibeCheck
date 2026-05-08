@@ -14,6 +14,7 @@ final class SettingsDetailViewModel: ObservableObject {
     @Published var xUsername: String { didSet { defaults.set(xUsername, forKey: Keys.xUsername) } }
     @Published var xDiscoverable: Bool { didSet { defaults.set(xDiscoverable, forKey: Keys.xDiscoverable) } }
     @Published var xVerified: Bool { didSet { defaults.set(xVerified, forKey: Keys.xVerified) } }
+    @Published var fullName: String { didSet { defaults.set(fullName, forKey: Keys.fullName) } }
 
     // MARK: - UI state
     @Published var verificationId: String?
@@ -36,6 +37,7 @@ final class SettingsDetailViewModel: ObservableObject {
         self.xUsername = defaults.string(forKey: Keys.xUsername) ?? ""
         self.xDiscoverable = defaults.bool(forKey: Keys.xDiscoverable)
         self.xVerified = defaults.bool(forKey: Keys.xVerified)
+        self.fullName = defaults.string(forKey: Keys.fullName) ?? ""
     }
 
     func syncFromFirebaseUser() {
@@ -47,6 +49,11 @@ final class SettingsDetailViewModel: ObservableObject {
         if let tw = DiscoverabilityAuthService.twitterUsername(from: user) {
             xUsername = tw
             xVerified = true
+        }
+        if trimmed(fullName).isEmpty,
+           let displayName = user.displayName,
+           !trimmed(displayName).isEmpty {
+            fullName = displayName
         }
     }
 
@@ -65,6 +72,13 @@ final class SettingsDetailViewModel: ObservableObject {
             "vibeCode": vibeCode,
             "updatedAt": FieldValue.serverTimestamp(),
         ]
+
+        let cleanedName = trimmed(fullName)
+        if !cleanedName.isEmpty {
+            data["fullName"] = cleanedName
+        } else {
+            data["fullName"] = FieldValue.delete()
+        }
 
         if let phoneToPublish {
             data["phoneE164"] = phoneToPublish
@@ -203,6 +217,7 @@ final class SettingsDetailViewModel: ObservableObject {
         static let xUsername = "discoverability.xUsername"
         static let xDiscoverable = "discoverability.xDiscoverable"
         static let xVerified = "discoverability.xVerified"
+        static let fullName = "discoverability.fullName"
     }
 
     private func handleIndexSyncError(_ error: Error) {
