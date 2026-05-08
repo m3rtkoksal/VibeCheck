@@ -42,6 +42,7 @@ private struct CompatibilityHistoryView: View {
     @State private var visibleCount = 8
     @State private var isEditing = false
     @State private var partnerPhotoURLs: [UUID: String] = [:]
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         ScrollView {
@@ -135,7 +136,7 @@ private struct CompatibilityHistoryView: View {
         }
         .background(
             LinearGradient(
-                colors: [Color(hex: 0xFAF9FE), Color(hex: 0xF4F3F8), Color.white],
+                colors: historyBackgroundColors,
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -146,6 +147,22 @@ private struct CompatibilityHistoryView: View {
     private func reloadHistory() {
         items = CompatibilityHistoryStore.load()
         visibleCount = min(max(visibleCount, 8), max(items.count, 8))
+    }
+
+    private var historyBackgroundColors: [Color] {
+        if colorScheme == .dark {
+            return [
+                Color(hex: 0x0B0C12),
+                Color(hex: 0x11131E),
+                Color(hex: 0x17111E),
+            ]
+        } else {
+            return [
+                Color(hex: 0xFAF9FE),
+                Color(hex: 0xF4F3F8),
+                Color.white,
+            ]
+        }
     }
 
     private func preloadPartnerPhotos() async {
