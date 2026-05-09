@@ -107,9 +107,6 @@ struct SettingsDetailView: View {
                             .padding(.horizontal, 20)
                         }
 
-                        personalityCard
-                            .padding(.horizontal, 20)
-
                         Spacer(minLength: 96)
                     }
                     .padding(.top, 88)
@@ -298,12 +295,6 @@ struct SettingsDetailView: View {
             .disabled(!vm.xVerified || vm.trimmed(vm.xUsername).isEmpty)
         } header: {
             Text("X (Twitter)")
-        } footer: {
-            Text(
-                "Firebase Authentication’da Twitter girişini aç; Twitter Developer anahtarlarını "
-                    + "Firebase’e gir. OAuth için Info.plist’te Firebase URL şeması kayıtlı."
-            )
-            .font(.footnote)
         }
         .onChange(of: vm.xUsername) { _, newValue in
             if vm.trimmed(newValue).isEmpty {
@@ -637,39 +628,6 @@ struct SettingsDetailView: View {
             return trimmed(vm.phoneNumber)
         }
         return "Bağlı değil"
-    }
-
-    private var personalityCard: some View {
-        HStack(spacing: 12) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Color(hex: 0xFF2D55).opacity(0.12))
-                Image(systemName: "brain.head.profile")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(Color(hex: 0xFF2D55))
-            }
-            .frame(width: 48, height: 48)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Vizyoner Kaşif")
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(Color(hex: 0xFF2D55))
-                Text("Kişilik testin güncel değil. Yeni bir analiz yap!")
-                    .font(.system(size: 13))
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer(minLength: 0)
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color(hex: 0xFF2D55).opacity(0.06))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(Color(hex: 0xFF2D55).opacity(0.12), lineWidth: 1)
-        )
     }
 
     private var saveBar: some View {
