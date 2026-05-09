@@ -44,27 +44,30 @@ enum DiscoverabilityAuthService {
             )
         }
 
-        return try await withCheckedThrowingContinuation { continuation in
-            PhoneAuthProvider.provider().verifyPhoneNumber(
-                formatted,
-                uiDelegate: nil
-            ) { verificationID, error in
-                if let error {
-                    logAuthError(error, context: "PhoneAuth.verifyPhoneNumber")
-                    continuation.resume(throwing: makePhoneAuthError(error))
-                    return
+        let maxAttempts = 3
+        var lastError: Error?
+
+        for attempt in 1...maxAttempts {
+            do {
+                return try await verifyPhoneNumberOnce(formatted)
+            } catch {
+                lastError = error
+                if !isTransientPhoneAuthError(error) || attempt == maxAttempts {
+                    throw makePhoneAuthError(error)
                 }
-                guard let verificationID else {
-                    continuation.resume(throwing: NSError(
-                        domain: "DiscoverabilityAuth",
-                        code: 2,
-                        userInfo: [NSLocalizedDescriptionKey: "Doğrulama oturumu alınamadı."]
-                    ))
-                    return
-                }
-                continuation.resume(returning: verificationID)
+                let backoffNs = UInt64(attempt * attempt) * 600_000_000 // 0.6s, 2.4s
+                try? await Task.sleep(nanoseconds: backoffNs)
             }
         }
+
+        if let lastError {
+            throw makePhoneAuthError(lastError)
+        }
+        throw NSError(
+            domain: "DiscoverabilityAuth",
+            code: 2,
+            userInfo: [NSLocalizedDescriptionKey: "Doğrulama oturumu alınamadı."]
+        )
     }
 
     static func linkPhone(verificationId: String, code: String) async throws {
@@ -154,6 +157,10 @@ enum DiscoverabilityAuthService {
         let ns = error as NSError
         let fallback = ns.localizedDescription.trimmingCharacters(in: .whitespacesAndNewlines)
 
+        if isTransientPhoneAuthError(error) {
+            return "SMS doğrulama servisi şu an yoğun görünüyor (geçici 503). 30-60 saniye sonra tekrar dene."
+        }
+
         if ns.domain == AuthErrorDomain,
            let code = AuthErrorCode(rawValue: ns.code) {
             switch code {
@@ -227,6 +234,40 @@ enum DiscoverabilityAuthService {
                 ]
             )
         }
+    }
+
+    private static func verifyPhoneNumberOnce(_ formatted: String) async throws -> String {
+        try await withCheckedThrowingContinuation { continuation in
+            PhoneAuthProvider.provider().verifyPhoneNumber(
+                formatted,
+                uiDelegate: nil
+            ) { verificationID, error in
+                if let error {
+                    logAuthError(error, context: "PhoneAuth.verifyPhoneNumber")
+                    continuation.resume(throwing: error)
+                    return
+                }
+                guard let verificationID else {
+                    continuation.resume(throwing: NSError(
+                        domain: "DiscoverabilityAuth",
+                        code: 2,
+                        userInfo: [NSLocalizedDescriptionKey: "Doğrulama oturumu alınamadı."]
+                    ))
+                    return
+                }
+                continuation.resume(returning: verificationID)
+            }
+        }
+    }
+
+    private static func isTransientPhoneAuthError(_ error: Error) -> Bool {
+        let ns = error as NSError
+        let infoDump = String(describing: ns.userInfo).lowercased()
+        let message = ns.localizedDescription.lowercased()
+        return infoDump.contains("code = 503")
+            || infoDump.contains("error code: 39")
+            || infoDump.contains("backenderror")
+            || message.contains("error code: 39")
     }
 
     private static func makePhoneAuthError(_ error: Error) -> NSError {
