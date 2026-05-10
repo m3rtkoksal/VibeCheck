@@ -1,9 +1,13 @@
 import {setGlobalOptions} from "firebase-functions";
 import {defineSecret} from "firebase-functions/params";
 import {onCall, HttpsError} from "firebase-functions/v2/https";
+import {onDocumentCreated} from "firebase-functions/v2/firestore";
 import * as logger from "firebase-functions/logger";
+import * as admin from "firebase-admin";
 
 setGlobalOptions({maxInstances: 10});
+
+admin.initializeApp();
 
 const openaiApiKey = defineSecret("OPENAI_API_KEY");
 
@@ -622,5 +626,68 @@ export const analyzeSelfProfile = onCall(
       gentleReminders: insight.gentleReminders,
       traitBreakdown: insight.traitBreakdown,
     };
+  }
+);
+
+/**
+ * Bir kullanıcı uyum puanını yayınladığında hedefe push bildirimi (FCM token gerekir).
+ */
+export const notifyTargetOnCompatibilityRating = onDocumentCreated(
+  {
+    document: "compatibilityRatings/{ratingId}",
+    region: "europe-west1",
+  },
+  async (event) => {
+    const snap = event.data;
+    if (!snap) {
+      return;
+    }
+    const data = snap.data();
+    const targetUID = data?.targetUID as string | undefined;
+    const raterUID = data?.raterUID as string | undefined;
+    if (!targetUID || !raterUID || targetUID === raterUID) {
+      return;
+    }
+
+    const nameRaw = data?.raterPublicName;
+    const name =
+      typeof nameRaw === "string" && nameRaw.trim().length > 0 ?
+        nameRaw.trim() :
+        "Birisi";
+
+    const tokenSnap = await admin
+      .firestore()
+      .doc(`userPushTokens/${targetUID}`)
+      .get();
+    const token = tokenSnap.get("token") as string | undefined;
+    if (!token) {
+      logger.info("compat rating notify: target has no FCM token", {targetUID});
+      return;
+    }
+
+    try {
+      await admin.messaging().send({
+        token,
+        notification: {
+          title: "VibeCheck",
+          body: `${name} seni puanladı — sen de onu puanla.`,
+        },
+        data: {
+          type: "compatibility_rating",
+          ratingDocId: snap.id,
+          pairKey: typeof data?.pairKey === "string" ? data.pairKey : "",
+          raterUID,
+        },
+        apns: {
+          payload: {
+            aps: {
+              sound: "default",
+            },
+          },
+        },
+      });
+    } catch (e) {
+      logger.error("compat rating notify FCM error", {e, targetUID});
+    }
   }
 );

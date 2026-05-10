@@ -166,6 +166,12 @@ final class CompatibilityAnalysisResultViewModel: ObservableObject {
 
     var partnerLabel: String {
         let q = output.partnerQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        if q.hasPrefix("vbc1.") {
+            guard q.count > 14 else { return q }
+            let prefix = String(q.prefix(6))
+            let suffix = String(q.suffix(4))
+            return "\(prefix)...\(suffix)"
+        }
         if q.hasPrefix("@") {
             return String(q.dropFirst()).capitalized
         }
@@ -182,16 +188,32 @@ final class CompatibilityAnalysisResultViewModel: ObservableObject {
     func saveRating() {
         guard canSaveRating else { return }
         let rating = buildDateEvaluation()
-        CompatibilityHistoryStore.append(
-            from: AIOnlyAnalysisOutput(
+
+        if let historyId = output.historyId {
+            CompatibilityHistoryStore.updateRating(
+                historyId: historyId,
                 partnerQuery: output.partnerQuery,
-                ai: output.ai,
-                myRating: rating,
-                receivedRating: output.receivedRating
+                rating: rating
             )
-        )
+        } else {
+            CompatibilityHistoryStore.append(
+                from: AIOnlyAnalysisOutput(
+                    partnerQuery: output.partnerQuery,
+                    ai: output.ai,
+                    myRating: rating,
+                    receivedRating: output.receivedRating,
+                    incomingFirestoreDocId: output.incomingFirestoreDocId
+                )
+            )
+        }
+
         Task {
-            await CompatibilityHistoryStore.publishMyRating(partnerQuery: output.partnerQuery, rating: rating)
+            await CompatibilityHistoryStore.publishMyRating(
+                partnerQuery: output.partnerQuery,
+                rating: rating,
+                sharedAI: output.ai,
+                raterPublicName: CompatibilityHistoryStore.resolvedRaterPublicNameForPublishing()
+            )
             await CompatibilityHistoryStore.syncReceivedRatings()
             refreshReceivedRatingFromHistory()
         }

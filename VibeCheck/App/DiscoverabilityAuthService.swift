@@ -304,3 +304,27 @@ enum DiscoverabilityAuthService {
         }
     }
 }
+
+// MARK: - Cloud Functions HTTPS Callable
+
+/// Firebase ID token Callable'a gitmeden önce hazır değilse sunucu `unauthenticated` dönebiliyordu.
+enum HttpsCallableAuthError: Error, LocalizedError {
+    case noSignedInFirebaseUser
+
+    var errorDescription: String? {
+        switch self {
+        case .noSignedInFirebaseUser:
+            return "Oturum doğrulanamadı. Ayarlardan çıkış yapıp tekrar giriş yap veya uygulamayı yeniden aç."
+        }
+    }
+}
+
+extension DiscoverabilityAuthService {
+    /// `onCall` çağrıları öncesi güncel ID token alır (Apple + anonim oturum birleşimi sonrası özellikle gerekli).
+    static func prepareForHttpsCallable() async throws {
+        guard let user = Auth.auth().currentUser else {
+            throw HttpsCallableAuthError.noSignedInFirebaseUser
+        }
+        _ = try await user.getIDToken(forcingRefresh: true)
+    }
+}

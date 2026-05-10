@@ -1,13 +1,19 @@
 import SwiftUI
 import FirebaseCore
 import FirebaseAuth
+import FirebaseMessaging
+import UserNotifications
 
-final class AppDelegate: NSObject, UIApplicationDelegate {
+final class AppDelegate: NSObject, UIApplicationDelegate, MessagingDelegate,
+    UNUserNotificationCenterDelegate {
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
         FirebaseApp.configure()
+
+        Messaging.messaging().delegate = self
+        UNUserNotificationCenter.current().delegate = self
 
         // SMS OTP: sessiz APNs ile doğrulama (gerçek cihaz). Simulator’da token olmayabilir;
         // Firebase o durumda reCAPTCHA / güvenlik akışına düşer.
@@ -19,32 +25,62 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         Auth.auth().settings?.isAppVerificationDisabledForTesting = true
         #endif
 
-        // MVP: ensure there is always a Firebase Auth user so callable functions can enforce auth.
-        Task {
-            if Auth.auth().currentUser == nil {
-                _ = try? await Auth.auth().signInAnonymously()
+        // FCM token çoğu zaman girişten önce gelir; oturum açılınca yeniden kaydedilsin.
+        Auth.auth().addStateDidChangeListener { _, user in
+            if user != nil {
+                UserPushTokenSync.refreshMessagingRegistration()
             }
         }
 
         return true
     }
 
+    func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+        guard let fcmToken else { return }
+        Task {
+            await UserPushTokenSync.persist(token: fcmToken)
+        }
+    }
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        completionHandler([.banner, .sound])
+    }
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        let userInfo = response.notification.request.content.userInfo
+        if let type = userInfo["type"] as? String, type == "compatibility_rating" {
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .vibecheckOpenHistoryTab, object: nil)
+            }
+        }
+        completionHandler()
+    }
+
     func application(
         _ application: UIApplication,
         didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
     ) {
+        Messaging.messaging().apnsToken = deviceToken
         #if DEBUG
         Auth.auth().setAPNSToken(deviceToken, type: .sandbox)
         #else
         Auth.auth().setAPNSToken(deviceToken, type: .prod)
         #endif
+        UserPushTokenSync.refreshMessagingRegistration()
     }
 
     func application(
         _ application: UIApplication,
         didFailToRegisterForRemoteNotificationsWithError error: Error
     ) {
-        // Simulator veya yetkisiz profil: Firebase Phone Auth yine de reCAPTCHA ile devam edebilir.
         NSLog("APNs kaydı yok: %@", error.localizedDescription)
     }
 
@@ -65,7 +101,6 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         open url: URL,
         options: [UIApplication.OpenURLOptionsKey: Any] = [:]
     ) -> Bool {
-        // Firebase Auth (Phone/Twitter) callback URL'lerini yakala.
         if Auth.auth().canHandle(url) {
             return true
         }

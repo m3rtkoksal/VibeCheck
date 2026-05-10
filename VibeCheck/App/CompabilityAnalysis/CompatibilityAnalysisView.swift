@@ -19,29 +19,7 @@ struct CompatibilityAnalysisView: View {
     private let horizontalInset: CGFloat = 18
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 14) {
-                myCodeCard
-                partnerCard
-                aiCard
-
-                if let errorText = vm.errorText {
-                    Text(errorText)
-                        .font(.footnote)
-                        .foregroundStyle(.red)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(14)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(Color.red.opacity(0.08))
-                        )
-                }
-            }
-            .padding(.horizontal, horizontalInset)
-            .padding(.top, 12)
-            .padding(.bottom, 110)
-        }
-        .background(
+        ZStack {
             LinearGradient(
                 colors: [
                     colorScheme == .dark ? Color(hex: 0x12131A) : Color(hex: 0xFFF6F7),
@@ -52,13 +30,43 @@ struct CompatibilityAnalysisView: View {
                 endPoint: .bottomTrailing
             )
             .ignoresSafeArea()
-        )
-        .navigationTitle("Uyum Analizi")
-        .navigationBarTitleDisplayMode(.inline)
+
+            VStack(spacing: 0) {
+                MainTabGlassTopBar(title: "Uyum Analizi") {
+                    IncomingNotificationsToolbarButton()
+                } trailing: {
+                    Color.clear.frame(width: 44, height: 44)
+                }
+
+                ScrollView {
+                    VStack(spacing: 14) {
+                        myCodeCard
+                        partnerCard
+                        aiCard
+
+                        if let errorText = vm.errorText {
+                            Text(errorText)
+                                .font(.footnote)
+                                .foregroundStyle(.red)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(14)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .fill(Color.red.opacity(0.08))
+                                )
+                        }
+                    }
+                    .padding(.horizontal, horizontalInset)
+                    .padding(.top, 12)
+                    .padding(.bottom, 110)
+                }
+                .scrollDismissesKeyboard(.interactively)
+            }
+        }
+        .navigationBarHidden(true)
         .onAppear {
             vm.generateMyCode()
         }
-        .scrollDismissesKeyboard(.interactively)
         .simultaneousGesture(TapGesture().onEnded {
             partnerFieldFocused = false
         })

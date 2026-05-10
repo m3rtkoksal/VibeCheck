@@ -51,6 +51,7 @@ struct CompatibilityAnalysisResultView: View {
         .onAppear {
             vm.loadAvatar(photoSaved: photoSaved)
             vm.refreshReceivedRating()
+            IncomingCompatibilityRatingsNotifier.shared.markIncomingDetailOpened(docId: vm.output.incomingFirestoreDocId)
         }
         .onChange(of: photoSaved) { _, _ in
             vm.loadAvatar(photoSaved: photoSaved)

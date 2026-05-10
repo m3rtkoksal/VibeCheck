@@ -24,16 +24,18 @@ final class CompatibilityAnalysisViewModel: ObservableObject {
         defer { isAnalyzing = false }
 
         do {
-            let partner = try await resolvePartnerSnapshot(from: partnerQuery)
+            let canonicalPartner = trimmed(partnerQuery)
+            let partner = try await resolvePartnerSnapshot(from: canonicalPartner)
             let me = ProfileSnapshot.fromLocalDefaults()
             let aiResult = try await AICompatibilityService.analyzeViaFirebase(
                 me: me,
                 partner: partner,
                 privateNote: privateNote
             )
-            let partnerDisplay = await resolvePartnerDisplay(from: partnerQuery)
+            // Firestore publish + geçmiş eşlemesi için TAM vibe code / telefon / @kullanıcı gerekir;
+            // maskelenmiş "vbc1.xxx...yyy" ile discoverabilityUsers sorgusu eşleşmez.
             let result = AIOnlyAnalysisOutput(
-                partnerQuery: partnerDisplay,
+                partnerQuery: canonicalPartner,
                 ai: aiResult
             )
             output = result
@@ -49,62 +51,6 @@ final class CompatibilityAnalysisViewModel: ObservableObject {
     var maskedMyCodePreview: String {
         let code = myCode.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !code.isEmpty else { return "vbc1x9...4k2p" }
-        guard code.count > 10 else { return code }
-        let prefix = String(code.prefix(6))
-        let suffix = String(code.suffix(4))
-        return "\(prefix)...\(suffix)"
-    }
-
-    private func resolvePartnerDisplay(from input: String) async -> String {
-        let q = trimmed(input)
-        guard !q.isEmpty else { return q }
-
-        let normalizedPhone = DiscoverabilityAuthService.normalizedE164Phone(q)
-        if normalizedPhone.hasPrefix("+"), normalizedPhone.count >= 8 {
-            return formatPhoneForDisplay(normalizedPhone)
-        }
-
-        let rawUser = q.hasPrefix("@") ? String(q.dropFirst()) : q
-        let username = rawUser.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        if !username.isEmpty,
-           username.range(of: #"^[a-z0-9_]{1,15}$"#, options: .regularExpression) != nil {
-            return "@\(username)"
-        }
-
-        if q.hasPrefix("vbc1.") {
-            if let doc = try? await lookupDiscoverabilityBy(vibeCode: q) {
-                if let x = (doc["xUsernameLower"] as? String)?
-                    .trimmingCharacters(in: .whitespacesAndNewlines),
-                   !x.isEmpty {
-                    return "@\(x.lowercased())"
-                }
-                if let phone = doc["phoneE164"] as? String,
-                   !phone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    return formatPhoneForDisplay(phone)
-                }
-            }
-            return maskedCodePreview(q)
-        }
-
-        return q
-    }
-
-    private func formatPhoneForDisplay(_ e164: String) -> String {
-        let digits = e164.filter(\.isNumber)
-        if digits.count == 12, digits.hasPrefix("90") {
-            let national = String(digits.dropFirst(2))
-            if national.count == 10 {
-                let first3 = national.prefix(3)
-                let second3 = national.dropFirst(3).prefix(3)
-                let third2 = national.dropFirst(6).prefix(2)
-                let last2 = national.suffix(2)
-                return "+90 \(first3) \(second3) \(third2) \(last2)"
-            }
-        }
-        return e164
-    }
-
-    private func maskedCodePreview(_ code: String) -> String {
         guard code.count > 10 else { return code }
         let prefix = String(code.prefix(6))
         let suffix = String(code.suffix(4))

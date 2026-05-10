@@ -99,6 +99,8 @@ enum AICompatibilityService {
         partner: ProfileSnapshot,
         privateNote: String
     ) async throws -> AICompatibilityInsight {
+        try await DiscoverabilityAuthService.prepareForHttpsCallable()
+
         let functions = Functions.functions(region: "europe-west1")
         let callable = functions.httpsCallable("analyzeCompatibility")
 
@@ -121,6 +123,8 @@ enum AICompatibilityService {
         me: ProfileSnapshot,
         privateNote: String
     ) async throws -> AISelfProfileInsight {
+        try await DiscoverabilityAuthService.prepareForHttpsCallable()
+
         let functions = Functions.functions(region: "europe-west1")
         let callable = functions.httpsCallable("analyzeSelfProfile")
 

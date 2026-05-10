@@ -53,42 +53,23 @@ struct SettingsTabView: View {
     // MARK: - Üst çubuk
 
     private var glassTopBar: some View {
-        VStack(spacing: 0) {
-            HStack(alignment: .center) {
-                Color.clear.frame(width: 44, height: 44)
-
-                Spacer(minLength: 0)
-
-                Text("VibeCheck")
-                    .font(.system(size: 20, weight: .heavy, design: .default))
-                    .tracking(-1)
-                    .foregroundStyle(Color(hex: 0xFF2D55))
-
-                Spacer(minLength: 0)
-
-                Menu {
-                    Button {
-                        versionMenuPresented = true
-                    } label: {
-                        Label(appVersionCompact, systemImage: "info.circle")
-                    }
+        MainTabGlassTopBar(title: "VibeCheck") {
+            IncomingNotificationsToolbarButton()
+        } trailing: {
+            Menu {
+                Button {
+                    versionMenuPresented = true
                 } label: {
-                    Image(systemName: "ellipsis")
-                        .font(.system(size: 20, weight: .medium))
-                        .foregroundStyle(palette.topBarSecondary)
-                        .frame(width: 44, height: 44)
-                        .contentShape(Rectangle())
+                    Label(appVersionCompact, systemImage: "info.circle")
                 }
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundStyle(palette.topBarSecondary)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
-            .padding(.horizontal, 12)
-            .frame(height: 64)
-
-            Rectangle()
-                .fill(palette.topBarDivider)
-                .frame(height: 1)
         }
-        .frame(maxWidth: .infinity)
-        .background(.regularMaterial.opacity(colorScheme == .dark ? 0.88 : 0.94))
     }
 
     // MARK: - Profil

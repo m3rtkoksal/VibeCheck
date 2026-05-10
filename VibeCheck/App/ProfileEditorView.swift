@@ -29,27 +29,35 @@ struct ProfileEditorView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                privateNoteHeroCard
-
-                if !setupMode {
-                    characterInsightStitchCard
+        Group {
+            if setupMode {
+                ScrollView {
+                    profileScrollInner
                 }
+                .scrollDismissesKeyboard(.interactively)
+                .background(palette.pageBackground.ignoresSafeArea())
+                .navigationTitle("Profilini tamamla")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbarBackground(palette.pageBackground.opacity(0.94), for: .navigationBar)
+            } else {
+                ZStack {
+                    palette.pageBackground.ignoresSafeArea()
+                    VStack(spacing: 0) {
+                        MainTabGlassTopBar(title: "Profil") {
+                            IncomingNotificationsToolbarButton()
+                        } trailing: {
+                            Color.clear.frame(width: 44, height: 44)
+                        }
 
-                questionsSectionStitch
+                        ScrollView {
+                            profileScrollInner
+                        }
+                        .scrollDismissesKeyboard(.interactively)
+                    }
+                }
+                .navigationBarHidden(true)
             }
-            .frame(maxWidth: 680)
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, 20)
-            .padding(.top, 8)
-            .padding(.bottom, setupMode && isCompleteProfile ? 108 : 32)
         }
-        .scrollDismissesKeyboard(.interactively)
-        .background(palette.pageBackground.ignoresSafeArea())
-        .navigationTitle(setupMode ? "Profilini tamamla" : "Profil")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(palette.pageBackground.opacity(0.94), for: .navigationBar)
         .navigationDestination(item: $selectedCategory) { category in
             AnswerView(
                 category: category,
@@ -87,6 +95,23 @@ struct ProfileEditorView: View {
         .onAppear {
             refreshToken = UUID()
         }
+    }
+
+    private var profileScrollInner: some View {
+        VStack(spacing: 20) {
+            privateNoteHeroCard
+
+            if !setupMode {
+                characterInsightStitchCard
+            }
+
+            questionsSectionStitch
+        }
+        .frame(maxWidth: 680)
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 20)
+        .padding(.top, 8)
+        .padding(.bottom, setupMode && isCompleteProfile ? 108 : 32)
     }
 
     // MARK: - Vurgu kartı (Karakter özeti + özel not)

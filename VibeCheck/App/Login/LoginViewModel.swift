@@ -106,7 +106,18 @@ final class LoginViewModel: ObservableObject {
             let credential = try await provider.credential(with: DiscoverabilityAuthService.uiDelegate)
 
             if let current = Auth.auth().currentUser, current.isAnonymous {
-                _ = try await current.link(with: credential)
+                do {
+                    _ = try await current.link(with: credential)
+                } catch {
+                    let ns = error as NSError
+                    if ns.domain == AuthErrorDomain,
+                       let code = AuthErrorCode(rawValue: ns.code),
+                       code == .credentialAlreadyInUse {
+                        _ = try await Auth.auth().signIn(with: credential)
+                    } else {
+                        throw error
+                    }
+                }
             } else {
                 _ = try await Auth.auth().signIn(with: credential)
             }
@@ -173,7 +184,18 @@ final class LoginViewModel: ObservableObject {
             )
 
             if let current = Auth.auth().currentUser, current.isAnonymous {
-                _ = try await current.link(with: firebaseCredential)
+                do {
+                    _ = try await current.link(with: firebaseCredential)
+                } catch {
+                    let ns = error as NSError
+                    if ns.domain == AuthErrorDomain,
+                       let code = AuthErrorCode(rawValue: ns.code),
+                       code == .credentialAlreadyInUse {
+                        _ = try await Auth.auth().signIn(with: firebaseCredential)
+                    } else {
+                        throw error
+                    }
+                }
             } else {
                 _ = try await Auth.auth().signIn(with: firebaseCredential)
             }

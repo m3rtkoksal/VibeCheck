@@ -30,7 +30,33 @@ service cloud.firestore {
         && request.resource.data.flowScore is int
         && request.resource.data.sexualFocusScore is int
         && request.resource.data.showedStatus is bool
-        && request.resource.data.redFlag is bool;
+        && request.resource.data.redFlag is bool
+        && request.resource.data.keys().hasOnly([
+          'pairKey',
+          'raterUID',
+          'targetUID',
+          'createdAt',
+          'egoScore',
+          'sincerityScore',
+          'intentScore',
+          'flowScore',
+          'sexualFocusScore',
+          'showedStatus',
+          'redFlag',
+          'overallScore',
+          'sharedAIJson',
+          'raterPublicName',
+          'partnerQueryHint',
+        ])
+        && (!('sharedAIJson' in request.resource.data)
+          || (request.resource.data.sharedAIJson is string
+            && request.resource.data.sharedAIJson.size() < 150000))
+        && (!('raterPublicName' in request.resource.data)
+          || (request.resource.data.raterPublicName is string
+            && request.resource.data.raterPublicName.size() < 120))
+        && (!('partnerQueryHint' in request.resource.data)
+          || (request.resource.data.partnerQueryHint is string
+            && request.resource.data.partnerQueryHint.size() < 500));
 
       allow read: if signedIn()
         && (
@@ -39,6 +65,19 @@ service cloud.firestore {
         );
 
       allow update, delete: if false;
+    }
+
+    /// FCM cihaz token’ı (istemci: kendi UID’si; Cloud Functions: admin ile okur).
+    /// Projede bu dosyayı değiştirdikten sonra mutlaka:
+    /// firebase deploy --only firestore:rules
+    match /userPushTokens/{userId} {
+      allow get, list: if signedIn() && request.auth.uid == userId;
+      allow create, update: if signedIn()
+        && request.auth.uid == userId
+        && request.resource.data.token is string
+        && request.resource.data.token.size() > 0
+        && request.resource.data.token.size() < 4096;
+      allow delete: if signedIn() && request.auth.uid == userId;
     }
   }
 }

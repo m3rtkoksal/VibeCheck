@@ -4,6 +4,10 @@ import FirebaseFunctions
 enum FriendlyCallableError {
     /// Human-readable text for Firebase Callable / OpenAI failures.
     static func message(for error: Error, label: String) -> String {
+        if let auth = error as? HttpsCallableAuthError {
+            return auth.localizedDescription ?? "Oturum doğrulanamadı."
+        }
+
         if let ai = error as? AICompatibilityError, ai == .invalidResponse {
             return "\(label): sunucu cevabı okunamadı."
         }

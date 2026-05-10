@@ -9,6 +9,8 @@ struct AIOnlyAnalysisOutput: Identifiable {
     let historyId: UUID?
     let myRating: DateEvaluation?
     let receivedRating: DateEvaluation?
+    /// Gelen puan bildirimi: Firestore'daki doküman kimliği (karşılık puanlama tamamlanınca geçmişe yazılır).
+    let incomingFirestoreDocId: String?
 
     init(
         id: UUID = UUID(),
@@ -16,7 +18,8 @@ struct AIOnlyAnalysisOutput: Identifiable {
         ai: AICompatibilityInsight,
         historyId: UUID? = nil,
         myRating: DateEvaluation? = nil,
-        receivedRating: DateEvaluation? = nil
+        receivedRating: DateEvaluation? = nil,
+        incomingFirestoreDocId: String? = nil
     ) {
         self.id = id
         self.partnerQuery = partnerQuery
@@ -24,6 +27,7 @@ struct AIOnlyAnalysisOutput: Identifiable {
         self.historyId = historyId
         self.myRating = myRating
         self.receivedRating = receivedRating
+        self.incomingFirestoreDocId = incomingFirestoreDocId
     }
 }
 
@@ -45,6 +49,8 @@ struct CompatibilityHistoryItem: Identifiable, Codable {
     let ai: AICompatibilityInsight
     let myRating: DateEvaluation?
     let receivedRating: DateEvaluation?
+    /// Yerel liste ile gelen puan bildirimi eşlemesi (yedek çözüm için).
+    let incomingRatingDocID: String?
 }
 
 enum CompatibilityHistoryStore {
@@ -71,7 +77,8 @@ enum CompatibilityHistoryStore {
             partnerQuery: output.partnerQuery,
             ai: output.ai,
             myRating: output.myRating,
-            receivedRating: output.receivedRating
+            receivedRating: output.receivedRating,
+            incomingRatingDocID: output.incomingFirestoreDocId
         )
         current.insert(item, at: 0)
         save(current)
@@ -99,7 +106,8 @@ enum CompatibilityHistoryStore {
                 partnerQuery: old.partnerQuery,
                 ai: old.ai,
                 myRating: rating,
-                receivedRating: old.receivedRating
+                receivedRating: old.receivedRating,
+                incomingRatingDocID: old.incomingRatingDocID
             )
             save(current)
             return
@@ -113,17 +121,44 @@ enum CompatibilityHistoryStore {
                 partnerQuery: old.partnerQuery,
                 ai: old.ai,
                 myRating: rating,
-                receivedRating: old.receivedRating
+                receivedRating: old.receivedRating,
+                incomingRatingDocID: old.incomingRatingDocID
             )
             save(current)
         }
     }
 
-    static func publishMyRating(partnerQuery: String, rating: DateEvaluation) async {
+    /// Ayarlar ile aynı UserDefaults anahtarı (tam ad bildirimi metninde kullanılır).
+    static func resolvedRaterPublicNameForPublishing() -> String {
+        let fromDefaults =
+            UserDefaults.standard.string(forKey: "discoverability.fullName")?
+                .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if !fromDefaults.isEmpty {
+            return fromDefaults
+        }
+        if let n = Auth.auth().currentUser?.displayName?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !n.isEmpty {
+            return n
+        }
+        return ""
+    }
+
+    static func publishMyRating(
+        partnerQuery: String,
+        rating: DateEvaluation,
+        sharedAI: AICompatibilityInsight,
+        raterPublicName: String
+    ) async {
         guard let raterUID = Auth.auth().currentUser?.uid else { return }
         do {
             guard let targetUID = try await resolvePartnerUID(partnerQuery: partnerQuery),
-                  !targetUID.isEmpty else { return }
+                  !targetUID.isEmpty else {
+                NSLog(
+                    "[CompatibilityHistoryStore] publishMyRating: hedef UID çözülemedi (Vibe Code / telefon / @kullanıcı tam ve satır sonu olmadan eşleşmeli): %@",
+                    partnerQuery
+                )
+                return
+            }
 
             let pairKey = [raterUID, targetUID].sorted().joined(separator: "::")
             var payload = firestoreMap(for: rating)
@@ -132,12 +167,41 @@ enum CompatibilityHistoryStore {
             payload["pairKey"] = pairKey
             payload["createdAt"] = FieldValue.serverTimestamp()
 
+            let aiData = try JSONEncoder().encode(sharedAI)
+            if let aiStr = String(data: aiData, encoding: .utf8) {
+                payload["sharedAIJson"] = aiStr
+            }
+
+            let trimmedName = raterPublicName.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmedName.isEmpty {
+                payload["raterPublicName"] = trimmedName
+            }
+
+            if let hint = try await resolvedPartnerQueryHintForPublishing(raterUID: raterUID)?.trimmingCharacters(
+                in: .whitespacesAndNewlines
+            ),
+               !hint.isEmpty {
+                payload["partnerQueryHint"] = hint
+            }
+
             try await Firestore.firestore()
                 .collection("compatibilityRatings")
                 .addDocument(data: payload)
+            NSLog(
+                "[CompatibilityHistoryStore] publishMyRating: Firestore’a yazıldı (hedef=%@, puanlayan=%@)",
+                targetUID,
+                raterUID
+            )
         } catch {
             NSLog("[CompatibilityHistoryStore] publishMyRating error: %@", error.localizedDescription)
         }
+    }
+
+    /// Gelen bildirimi açarken kullanıcı adı için: rater'in discoverability belgesinden en iyi görünür tanımlayıcı.
+    static func decodeSharedAIInsight(fromFirestore data: [String: Any]) -> AICompatibilityInsight? {
+        guard let raw = data["sharedAIJson"] as? String,
+              let blob = raw.data(using: .utf8) else { return nil }
+        return try? JSONDecoder().decode(AICompatibilityInsight.self, from: blob)
     }
 
     static func syncReceivedRatings() async {
@@ -190,7 +254,8 @@ enum CompatibilityHistoryStore {
                         partnerQuery: old.partnerQuery,
                         ai: old.ai,
                         myRating: old.myRating,
-                        receivedRating: incoming
+                        receivedRating: incoming,
+                        incomingRatingDocID: old.incomingRatingDocID
                     )
                     changed = true
                 }
@@ -202,6 +267,32 @@ enum CompatibilityHistoryStore {
         } catch {
             NSLog("[CompatibilityHistoryStore] syncReceivedRatings error: %@", error.localizedDescription)
         }
+    }
+
+    static func resolvedPartnerQueryHintForPublishing(raterUID: String) async throws -> String? {
+        let doc = try await Firestore.firestore()
+            .collection("discoverabilityUsers")
+            .document(raterUID)
+            .getDocument()
+        guard let data = doc.data() else { return nil }
+        if let x = data["xUsernameLower"] as? String,
+           !x.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return "@\(x.trimmingCharacters(in: .whitespacesAndNewlines).lowercased())"
+        }
+        if let phone = data["phoneE164"] as? String,
+           !phone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return DiscoverabilityAuthService.normalizedE164Phone(phone)
+        }
+        if let vibe = data["vibeCode"] as? String,
+           !vibe.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return vibe.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        return nil
+    }
+
+    /// Gelen bildirim satırından puan çıkarma.
+    static func ratingFromFirestorePublic(_ data: [String: Any]) -> DateEvaluation? {
+        ratingFromFirestore(data)
     }
 
     private static func save(_ items: [CompatibilityHistoryItem]) {
@@ -227,6 +318,10 @@ enum CompatibilityHistoryStore {
     private static func normalizedLookup(for rawQuery: String) -> (field: String, value: String)? {
         let q = rawQuery.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !q.isEmpty else { return nil }
+
+        if q.hasPrefix("vbc1.") {
+            return ("vibeCode", q)
+        }
 
         let normalizedPhone = DiscoverabilityAuthService.normalizedE164Phone(q)
         if normalizedPhone.hasPrefix("+"), normalizedPhone.count >= 8 {

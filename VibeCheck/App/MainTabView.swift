@@ -1,6 +1,49 @@
 import SwiftUI
 import FirebaseFirestore
 
+// MARK: - Ana sekmeler üst çubuğu (SettingsTabView ile aynı düzen)
+
+private enum MainTabGlassTopPalette {
+    static func divider(_ scheme: ColorScheme) -> Color {
+        scheme == .dark ? Color.white.opacity(0.12) : Color(hex: 0xE9E7ED)
+    }
+}
+
+struct MainTabGlassTopBar<Leading: View, Trailing: View>: View {
+    let title: String
+    @ViewBuilder var leading: () -> Leading
+    @ViewBuilder var trailing: () -> Trailing
+
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(alignment: .center) {
+                leading()
+
+                Spacer(minLength: 0)
+
+                Text(title)
+                    .font(.system(size: 20, weight: .heavy, design: .default))
+                    .tracking(-1)
+                    .foregroundStyle(Color(hex: 0xFF2D55))
+
+                Spacer(minLength: 0)
+
+                trailing()
+            }
+            .padding(.horizontal, 12)
+            .frame(height: 64)
+
+            Rectangle()
+                .fill(MainTabGlassTopPalette.divider(colorScheme))
+                .frame(height: 1)
+        }
+        .frame(maxWidth: .infinity)
+        .background(.regularMaterial.opacity(colorScheme == .dark ? 0.88 : 0.94))
+    }
+}
+
 /// Giriş tamamlandıktan ve ilk kurulum pipeline’ı bittikten sonra görünen ana kabuk (tab’lar).
 struct MainTabView: View {
     @State private var selectedTab: MainTab = .history
@@ -40,6 +83,9 @@ struct MainTabView: View {
             }
         }
         .tint(.pink)
+        .onReceive(NotificationCenter.default.publisher(for: .vibecheckOpenHistoryTab)) { _ in
+            selectedTab = .history
+        }
     }
 }
 
@@ -53,42 +99,52 @@ private enum MainTab: Hashable {
 private struct CompatibilityHistoryView: View {
     @State private var items: [CompatibilityHistoryItem] = CompatibilityHistoryStore.load()
     @State private var visibleCount = 8
-    @State private var isEditing = false
     @State private var partnerPhotoURLs: [UUID: String] = [:]
     @State private var partnerDisplayNames: [UUID: String] = [:]
     @State private var sortOption: HistorySortOption = .latest
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                summaryInsights
+        ZStack {
+            LinearGradient(
+                colors: historyBackgroundColors,
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
 
-                HStack {
-                    Text("Son Analizler")
-                        .font(.system(size: 22, weight: .bold))
-                        .foregroundStyle(.primary)
-                    Spacer()
-                    Menu {
-                        sortOptionButton(.latest, title: "En Yeni")
-                        sortOptionButton(.aiScore, title: "AI Uyum")
-                        sortOptionButton(.myScore, title: "Senin Puanın")
-                        sortOptionButton(.receivedScore, title: "Sana Verilen")
-                    } label: {
-                        Image(systemName: "arrow.up.arrow.down.circle.fill")
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundStyle(Color(hex: 0xE51245))
-                    }
+            VStack(spacing: 0) {
+                MainTabGlassTopBar(title: "Geçmiş") {
+                    IncomingNotificationsToolbarButton()
+                } trailing: {
+                    Color.clear.frame(width: 44, height: 44)
                 }
 
-                if items.isEmpty {
-                    emptyStateCard
-                } else {
-                    VStack(spacing: 12) {
-                        ForEach(Array(sortedItems.prefix(visibleCount))) { item in
-                            if isEditing {
-                                editingHistoryCard(item: item)
-                            } else {
+                List {
+                    Section {
+                        summaryInsights
+                            .listRowInsets(EdgeInsets(top: 14, leading: 18, bottom: 8, trailing: 18))
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                    }
+
+                    Section {
+                        sonAnalizlerHeaderRow
+                            .listRowInsets(EdgeInsets(top: 0, leading: 18, bottom: 10, trailing: 18))
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                    }
+
+                    if items.isEmpty {
+                        Section {
+                            emptyStateCard
+                                .listRowInsets(EdgeInsets(top: 8, leading: 18, bottom: 120, trailing: 18))
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
+                        }
+                    } else {
+                        Section {
+                            ForEach(displayedHistoryItems) { item in
                                 NavigationLink {
                                     CompatibilityAnalysisResultView(
                                         output: AIOnlyAnalysisOutput(
@@ -101,59 +157,45 @@ private struct CompatibilityHistoryView: View {
                                         )
                                     )
                                 } label: {
-                                    historyCard(item: item)
+                                    historyCard(item: item, showsAccessoryChevron: false)
+                                        .contentShape(Rectangle())
                                 }
-                                .buttonStyle(.plain)
+                                .listRowInsets(EdgeInsets(top: 6, leading: 18, bottom: 6, trailing: 14))
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    Button(role: .destructive) {
+                                        deleteHistoryItem(item)
+                                    } label: {
+                                        Label("Sil", systemImage: "trash.fill")
+                                    }
+                                }
                                 .contextMenu {
                                     Button(role: .destructive) {
-                                        if let idx = items.firstIndex(where: { $0.id == item.id }) {
-                                            CompatibilityHistoryStore.remove(at: IndexSet(integer: idx))
-                                            reloadHistory()
-                                        }
+                                        deleteHistoryItem(item)
                                     } label: {
                                         Label("Sil", systemImage: "trash")
                                     }
                                 }
                             }
                         }
-                    }
 
-                    if visibleCount < sortedItems.count {
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                visibleCount = min(visibleCount + 8, sortedItems.count)
+                        if visibleCount < sortedItems.count {
+                            Section {
+                                loadMoreHistoryRow
+                                    .listRowInsets(EdgeInsets(top: 8, leading: 18, bottom: 120, trailing: 18))
+                                    .listRowBackground(Color.clear)
+                                    .listRowSeparator(.hidden)
                             }
-                        } label: {
-                            Text("Daha Fazla Göster")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundStyle(.secondary)
-                                .padding(.horizontal, 18)
-                                .padding(.vertical, 10)
-                                .background(Color(.secondarySystemBackground))
-                                .clipShape(Capsule())
                         }
-                        .buttonStyle(.plain)
-                        .frame(maxWidth: .infinity)
-                        .padding(.top, 4)
                     }
                 }
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 14)
-            .padding(.bottom, 120)
-        }
-        .navigationTitle("Geçmiş")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button(isEditing ? "Bitti" : "Edit") {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        isEditing.toggle()
-                    }
-                }
-                    .foregroundStyle(Color(hex: 0xE51245))
+                .listSectionSpacing(20)
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
             }
         }
+        .navigationBarHidden(true)
         .onAppear {
             reloadHistory()
             Task { await preloadPartnerPhotos() }
@@ -164,14 +206,57 @@ private struct CompatibilityHistoryView: View {
             Task { await preloadPartnerPhotos() }
             syncReceivedRatingsFromCloud()
         }
-        .background(
-            LinearGradient(
-                colors: historyBackgroundColors,
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
-        )
+    }
+
+    /// List + NavigationLink kendi disclosure ikonunu gösterdiği için çift ok olmasın.
+    private var displayedHistoryItems: [CompatibilityHistoryItem] {
+        Array(sortedItems.prefix(visibleCount))
+    }
+
+    private var sonAnalizlerHeaderRow: some View {
+        HStack {
+            Text("Son Analizler")
+                .font(.system(size: 22, weight: .bold))
+                .foregroundStyle(.primary)
+            Spacer()
+            Menu {
+                sortOptionButton(.latest, title: "En Yeni")
+                sortOptionButton(.aiScore, title: "AI Uyum")
+                sortOptionButton(.myScore, title: "Senin Puanın")
+                sortOptionButton(.receivedScore, title: "Sana Verilen")
+            } label: {
+                Image(systemName: "arrow.up.arrow.down.circle.fill")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(Color(hex: 0xE51245))
+            }
+        }
+    }
+
+    private var loadMoreHistoryRow: some View {
+        Button {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                visibleCount = min(visibleCount + 8, sortedItems.count)
+            }
+        } label: {
+            Text("Daha Fazla Göster")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 10)
+                .background(Color(.secondarySystemBackground))
+                .clipShape(Capsule())
+                .frame(maxWidth: .infinity)
+                .multilineTextAlignment(.center)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func deleteHistoryItem(_ item: CompatibilityHistoryItem) {
+        guard let idx = items.firstIndex(where: { $0.id == item.id }) else { return }
+        withAnimation(.easeInOut(duration: 0.2)) {
+            CompatibilityHistoryStore.remove(at: IndexSet(integer: idx))
+        }
+        reloadHistory()
     }
 
     private func reloadHistory() {
@@ -355,7 +440,7 @@ private struct CompatibilityHistoryView: View {
         )
     }
 
-    private func historyCard(item: CompatibilityHistoryItem) -> some View {
+    private func historyCard(item: CompatibilityHistoryItem, showsAccessoryChevron: Bool = true) -> some View {
         HStack(spacing: 12) {
             partnerAvatar(for: item)
 
@@ -390,9 +475,11 @@ private struct CompatibilityHistoryView: View {
                 }
             }
 
-            Image(systemName: "chevron.right")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(Color(.tertiaryLabel))
+            if showsAccessoryChevron {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Color(.tertiaryLabel))
+            }
         }
         .padding(16)
         .background(
@@ -400,26 +487,6 @@ private struct CompatibilityHistoryView: View {
                 .fill(Color(.systemBackground))
                 .shadow(color: .black.opacity(0.04), radius: 12, x: 0, y: 6)
         )
-    }
-
-    private func editingHistoryCard(item: CompatibilityHistoryItem) -> some View {
-        HStack(spacing: 10) {
-            historyCard(item: item)
-            Button(role: .destructive) {
-                if let idx = items.firstIndex(where: { $0.id == item.id }) {
-                    CompatibilityHistoryStore.remove(at: IndexSet(integer: idx))
-                    reloadHistory()
-                }
-            } label: {
-                Image(systemName: "trash")
-                    .font(.system(size: 15, weight: .semibold))
-                    .frame(width: 36, height: 36)
-                    .background(Color.red.opacity(0.12))
-                    .foregroundStyle(.red)
-                    .clipShape(Circle())
-            }
-            .buttonStyle(.plain)
-        }
     }
 
     private func metricChip(label: String, value: String, tint: Color) -> some View {
@@ -500,6 +567,11 @@ private struct CompatibilityHistoryView: View {
     private func sanitizedName(_ raw: String) -> String {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.isEmpty { return "Bilinmeyen Kullanıcı" }
+        if trimmed.hasPrefix("vbc1."), trimmed.count > 14 {
+            let p = String(trimmed.prefix(6))
+            let s = String(trimmed.suffix(4))
+            return "\(p)...\(s)"
+        }
         if trimmed.hasPrefix("+90") { return trimmed }
         if trimmed.hasPrefix("@") {
             return String(trimmed.dropFirst()).capitalized
@@ -568,6 +640,17 @@ private struct CompatibilityHistoryView: View {
             }
         }
 
+        if q.hasPrefix("vbc1.") {
+            let vSnap = try await db
+                .collection("discoverabilityUsers")
+                .whereField("vibeCode", isEqualTo: q)
+                .limit(to: 1)
+                .getDocuments()
+            if let data = vSnap.documents.first?.data() {
+                return data
+            }
+        }
+
         return nil
     }
 
@@ -598,6 +681,84 @@ private extension Color {
         let g = Double((hex & 0x00FF00) >> 8) / 255.0
         let b = Double(hex & 0x0000FF) / 255.0
         self.init(.sRGB, red: r, green: g, blue: b, opacity: alpha)
+    }
+}
+
+/// Ana sekmelerde paylaşılan puan bildirimi çanı (Profil ile aynı görünüm).
+struct IncomingNotificationsToolbarButton: View {
+    @ObservedObject private var incomingRatings = IncomingCompatibilityRatingsNotifier.shared
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var badgeWellFill: Color {
+        colorScheme == .dark ? Color(hex: 0x2A3244) : Color(hex: 0xFFFFFF)
+    }
+
+    private var bellTint: Color {
+        colorScheme == .dark ? Color(hex: 0x5C8EFF) : Color(hex: 0x004BE3)
+    }
+
+    var body: some View {
+        NavigationLink {
+            IncomingCompatibilityRatingsInboxView()
+        } label: {
+            bellLabel(count: incomingRatings.badgeCount)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(
+            incomingRatings.badgeCount > 0 ?
+                "Puan bildirimleri, \(incomingRatings.badgeCount) bekleyen" :
+                "Puan bildirimleri"
+        )
+    }
+
+    private func bellLabel(count: Int) -> some View {
+        let circleSize: CGFloat = 40
+        // Rozet için yatay alan — çift haneli / 99+ sığsın.
+        let labelWidth: CGFloat = count > 9 ? 56 : (count > 0 ? 52 : 44)
+
+        return ZStack {
+            Circle()
+                .fill(badgeWellFill)
+                .frame(width: circleSize, height: circleSize)
+                .shadow(
+                    color: Color.black.opacity(colorScheme == .dark ? 0.35 : 0.08),
+                    radius: 3,
+                    x: 0,
+                    y: 1
+                )
+
+            Image(systemName: "bell.fill")
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(bellTint)
+
+            if count > 0 {
+                VStack {
+                    HStack(spacing: 0) {
+                        Spacer(minLength: 0)
+                        Text(count > 99 ? "99+" : "\(count)")
+                            .font(.system(size: 11, weight: .heavy))
+                            .monospacedDigit()
+                            .foregroundStyle(.white)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                            .padding(.horizontal, count > 9 ? 5 : 0)
+                            .frame(minWidth: 20, minHeight: 20)
+                            .background(Capsule(style: .continuous).fill(Color(hex: 0xE51245)))
+                            .overlay(
+                                Capsule(style: .continuous)
+                                    .stroke(Color.white, lineWidth: 1.5)
+                            )
+                            .accessibilityHidden(true)
+                            // Taşmayı solda tut: sağ kenar clipping’i azalır.
+                            .offset(x: -5, y: 1)
+                    }
+                    Spacer(minLength: 0)
+                }
+                .padding(EdgeInsets(top: 0, leading: 4, bottom: 6, trailing: 4))
+            }
+        }
+        .frame(width: labelWidth, height: 44)
+        .contentShape(Rectangle())
     }
 }
 
