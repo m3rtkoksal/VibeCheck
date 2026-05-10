@@ -37,8 +37,7 @@ type ForecastItem = {
 
 type AISelfProfileInsight = {
   summary: string;
-  aboutYou: string[];
-  relationshipStyle: string;
+  aboutYou?: string[];
   gentleReminders: string[];
   traitBreakdown?: Array<{
     id: string;
@@ -520,13 +519,18 @@ export const analyzeSelfProfile = onCall(
       prettySelections(me),
       privateNoteBlock,
       "",
-      "Bu seçimlere dayanarak kullanıcıya özel kısa bir okuma üret.",
+      "Bu seçimlere dayanarak kullanıcıya özel tek bir güçlü anlatım üret.",
       "",
       "JSON formatında yanıtla:",
       "{",
-      "  \"summary\": \"2-3 cümle nazik özet\",",
-      "  \"aboutYou\": [\"madde\", \"...\"],",
-      "  \"relationshipStyle\": \"2-4 cümle\",",
+      [
+        "  \"summary\":",
+        "\"Türkçe tek sürekli anlatım: seçimleri yansıtan özet;",
+        " ilişkiye yaklaşım, iletişim, sınırlar, yakınlık ihtiyacı gibi temaları",
+        " ayrı bölüm YAZMADAN bu metinde doğal tek akışta veya kısa maddeler içinde;",
+        " 5–12 cümle; yargılayıcı olma.\",",
+      ].join(""),
+      "  \"aboutYou\": [],",
       "  \"gentleReminders\": [\"en fazla 3 madde\"],",
       "  \"traitBreakdown\": [",
       [
@@ -553,7 +557,8 @@ export const analyzeSelfProfile = onCall(
       "}",
       "",
       "Kurallar:",
-      "- aboutYou 4-7 kısa madde olabilir.",
+      "- aboutYou hep boş dizi (eski uyumluluk alanıdır).",
+      "- Tekrarlayan ikinci blok YOK: ilişkiye dair ne söylenecekse hep summary içinde olsun.",
       "- gentleReminders isteğe bağlı; fazlaysa kısalt.",
       [
         "- traitBreakdown her zaman 5 eleman içersin",
@@ -581,11 +586,14 @@ export const analyzeSelfProfile = onCall(
       throw new HttpsError("internal", "Model JSON parse failed");
     }
 
+    if (typeof insight.summary !== "string" || !Array.isArray(insight.gentleReminders)) {
+      throw new HttpsError("internal", "Model JSON shape invalid");
+    }
+
+    const aboutYou = insight.aboutYou;
     if (
-      typeof insight.summary !== "string" ||
-      !Array.isArray(insight.aboutYou) ||
-      typeof insight.relationshipStyle !== "string" ||
-      !Array.isArray(insight.gentleReminders)
+      aboutYou !== undefined &&
+      !aboutYou.every((x: unknown) => typeof x === "string")
     ) {
       throw new HttpsError("internal", "Model JSON shape invalid");
     }
@@ -608,6 +616,11 @@ export const analyzeSelfProfile = onCall(
       }
     }
 
-    return insight;
+    return {
+      summary: insight.summary,
+      aboutYou: insight.aboutYou ?? [],
+      gentleReminders: insight.gentleReminders,
+      traitBreakdown: insight.traitBreakdown,
+    };
   }
 );
