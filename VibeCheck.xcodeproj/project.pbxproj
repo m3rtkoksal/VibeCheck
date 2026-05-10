@@ -36,6 +36,7 @@
 		9440896AEA69777CCFA88371 /* FriendlyCallableError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CE588AA5B7EF3B30BE543E2 /* FriendlyCallableError.swift */; };
 		A1893C772CE0DFFEA67A2D29 /* AuthProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C42B59B5CDDCBE0B5E598A1B /* AuthProvider.swift */; };
 		A6D425A62FAB3D37006EC420 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = A6D425A52FAB3D37006EC420 /* GoogleService-Info.plist */; };
+		A7139F562F001A4CB7E89202 /* HelpSupportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7139F562F001A4CB7E89201 /* HelpSupportView.swift */; };
 		B128B4000E233A43F3DD7E38 /* ProfileSetupFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00ECDD4DAA718CF12BACC78 /* ProfileSetupFlowView.swift */; };
 		B424FD658207159DF90FBBD0 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 6096CD9753F3C7C531F2520D /* FirebaseAuth */; };
 		B7C8DE8CAC85AD95E68F1DE7 /* ProfileSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D4AE98C10BC6002776520E /* ProfileSummaryView.swift */; };
@@ -48,6 +49,7 @@
 		ED2D912864C5A234132A7457 /* SettingsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D86609B4CA8F9578296C074 /* SettingsTabView.swift */; };
 		F03D5E188AB3C1984C4441D4 /* ThemeSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBA0898C352845577AA7324F /* ThemeSelectionView.swift */; };
 		F92417A377B2A4DCB74D7A35 /* ProfileSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D84CA0A6AC8378685498821 /* ProfileSnapshot.swift */; };
+		FC01D0012F902A4CB7E89210 /* SubscriptionManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC01D0012F902A4CB7E89211 /* SubscriptionManagementView.swift */; };
 		FCC74F5DDA08A83B108D5F99 /* SelfProfileInsightSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7573CE8386B88B4290F41212 /* SelfProfileInsightSections.swift */; };
 /* End PBXBuildFile section */
 
@@ -80,6 +82,7 @@
 		9957680C0FDCD4B5759272A5 /* ProfilePhotoStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePhotoStore.swift; sourceTree = "<group>"; };
 		9C409CE2A97FE76E0ABA07A1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A6D425A52FAB3D37006EC420 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		A7139F562F001A4CB7E89201 /* HelpSupportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpSupportView.swift; sourceTree = "<group>"; };
 		BBEA28186AC1614EA868AA52 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BD05BA20B44FED2FF8AF5ED0 /* VibeCheckApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VibeCheckApp.swift; sourceTree = "<group>"; };
 		C42B59B5CDDCBE0B5E598A1B /* AuthProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthProvider.swift; sourceTree = "<group>"; };
@@ -92,6 +95,7 @@
 		F00ECDD4DAA718CF12BACC78 /* ProfileSetupFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSetupFlowView.swift; sourceTree = "<group>"; };
 		F71BC7E3BE688CDB57AF538D /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		FBA0898C352845577AA7324F /* ThemeSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeSelectionView.swift; sourceTree = "<group>"; };
+		FC01D0012F902A4CB7E89211 /* SubscriptionManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManagementView.swift; sourceTree = "<group>"; };
 		FDEF90455119BDD43FFD907C /* SelfProfileInsightDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelfProfileInsightDashboardView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -166,7 +170,9 @@
 				9957680C0FDCD4B5759272A5 /* ProfilePhotoStore.swift */,
 				38194AF1C04334644BBB7CA6 /* SettingsDetailView.swift */,
 				EE7444158C03BAAD5DD7020B /* SettingsDetailViewModel.swift */,
+				A7139F562F001A4CB7E89201 /* HelpSupportView.swift */,
 				8D86609B4CA8F9578296C074 /* SettingsTabView.swift */,
+				FC01D0012F902A4CB7E89211 /* SubscriptionManagementView.swift */,
 				FBA0898C352845577AA7324F /* ThemeSelectionView.swift */,
 			);
 			path = Settings;
@@ -310,6 +316,7 @@
 				D6BB7C08321DC2595621E71D /* DiscoverabilityAuthService.swift in Sources */,
 				ECBAC503264D75FA68F4AEE1 /* FirebaseAuthUIDelegateBridge.swift in Sources */,
 				9440896AEA69777CCFA88371 /* FriendlyCallableError.swift in Sources */,
+				A7139F562F001A4CB7E89202 /* HelpSupportView.swift in Sources */,
 				43100C80A1BB8245F0832F40 /* LoginView.swift in Sources */,
 				1E9D61AF4C1F33EAE0376243 /* LoginViewModel.swift in Sources */,
 				1C961A38A4E435EDD09E86C3 /* LottieAnimationPlayer.swift in Sources */,
@@ -331,6 +338,7 @@
 				6F8F7976A7385F36459E759F /* SettingsDetailView.swift in Sources */,
 				7A670BB4AD5367D9E318D521 /* SettingsDetailViewModel.swift in Sources */,
 				ED2D912864C5A234132A7457 /* SettingsTabView.swift in Sources */,
+				FC01D0012F902A4CB7E89210 /* SubscriptionManagementView.swift in Sources */,
 				F03D5E188AB3C1984C4441D4 /* ThemeSelectionView.swift in Sources */,
 				44C3816CEE989BA6CBCE6E67 /* UIApplication+TopViewController.swift in Sources */,
 				8A20AEEE7BFC749B7A94B06A /* VibeCheckApp.swift in Sources */,
@@ -348,7 +356,7 @@
 				CODE_SIGN_ENTITLEMENTS = VibeCheck/VibeCheck.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEPLOYMENT_POSTPROCESSING = NO;
 				DEVELOPMENT_TEAM = 79G38KD48M;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -502,7 +510,7 @@
 				CODE_SIGN_ENTITLEMENTS = VibeCheck/VibeCheck.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEPLOYMENT_POSTPROCESSING = NO;
 				DEVELOPMENT_TEAM = 79G38KD48M;
 				GENERATE_INFOPLIST_FILE = NO;

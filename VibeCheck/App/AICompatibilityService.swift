@@ -42,9 +42,44 @@ struct AICompatibilityInsight: Codable {
 struct AISelfProfileInsight: Codable {
     let summary: String
     let aboutYou: [String]
-    let relationshipStyle: String
     let gentleReminders: [String]
     let traitBreakdown: [Trait]?
+
+    enum CodingKeys: String, CodingKey {
+        case summary
+        case aboutYou
+        case gentleReminders
+        case traitBreakdown
+    }
+
+    init(
+        summary: String,
+        aboutYou: [String],
+        gentleReminders: [String],
+        traitBreakdown: [Trait]?
+    ) {
+        self.summary = summary
+        self.aboutYou = aboutYou
+        self.gentleReminders = gentleReminders
+        self.traitBreakdown = traitBreakdown
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        summary = try c.decode(String.self, forKey: .summary)
+        aboutYou = try c.decodeIfPresent([String].self, forKey: .aboutYou) ?? []
+        gentleReminders =
+            try c.decodeIfPresent([String].self, forKey: .gentleReminders) ?? []
+        traitBreakdown = try c.decodeIfPresent([Trait].self, forKey: .traitBreakdown)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(summary, forKey: .summary)
+        try c.encode(aboutYou, forKey: .aboutYou)
+        try c.encode(gentleReminders, forKey: .gentleReminders)
+        try c.encodeIfPresent(traitBreakdown, forKey: .traitBreakdown)
+    }
 
     struct Trait: Codable, Hashable {
         /// Stable id like "introversion"
