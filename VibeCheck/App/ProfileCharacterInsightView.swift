@@ -9,6 +9,7 @@ struct ProfileCharacterInsightView: View {
 
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     private var palette: CharacterInsightChromePalette {
         colorScheme == .dark ? .dark : .light
@@ -27,70 +28,20 @@ struct ProfileCharacterInsightView: View {
     }
 
     var body: some View {
+        profileInsightRoot
+    }
+
+    private var profileInsightRoot: some View {
         ZStack {
-            palette.pageBackground
+            MeshAuroraBackgroundView()
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
                 stickyHeader
-
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        if SelfProfileInsightStore.isStaleComparedToProfile(),
-                           payload?.insight != nil {
-                            staleBanner
-                        }
-
-                        if let errorText {
-                            Text(errorText)
-                                .font(.system(size: 15))
-                                .foregroundStyle(CharacterInsightChromePalette.errorInk)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(16)
-                                .background(
-                                    RoundedRectangle(
-                                        cornerRadius: 18,
-                                        style: .continuous
-                                    )
-                                    .fill(
-                                        CharacterInsightChromePalette.errorContainerFill
-                                            .opacity(0.35)
-                                    )
-                                )
-                        }
-
-                        if let insight = payload?.insight {
-                            SelfProfileInsightSections(insight: insight, bottomSpacerMin: 8)
-
-                            if let savedAt = payload?.savedAt {
-                                Text(savedAt.formatted(date: .abbreviated, time: .shortened))
-                                    .font(.system(size: 13, weight: .medium))
-                                    .foregroundStyle(palette.secondaryLabel)
-                                    .frame(maxWidth: .infinity)
-                                    .multilineTextAlignment(.center)
-                                    .padding(.top, 12)
-                            }
-                        } else {
-                            ContentUnavailableView(
-                                "Henüz özet yok",
-                                systemImage: "sparkles",
-                                description: Text(
-                                    "Profil analizi tamamlanınca burada saklanır. "
-                                        + "Aşağıdan şimdi de oluşturabilirsin."
-                                )
-                            )
-                            .padding(.vertical, 40)
-                            .frame(maxWidth: .infinity)
-                        }
-                    }
-                    .frame(maxWidth: 680)
-                    .frame(maxWidth: .infinity)
-                    .padding(.horizontal, 20)
-                    .padding(.top, 16)
-                    .padding(.bottom, scrollBottomPadding)
-                }
+                profileInsightScroll
             }
         }
+        .tint(Color(hex: 0xE51245))
         .toolbar(.hidden, for: .navigationBar)
         .navigationBarBackButtonHidden(true)
         .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -109,6 +60,69 @@ struct ProfileCharacterInsightView: View {
         }
     }
 
+    private var profileInsightScroll: some View {
+        ScrollView {
+            profileInsightScrollContent
+                .frame(maxWidth: 680)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
+                .padding(.bottom, scrollBottomPadding)
+        }
+        .scrollDismissesKeyboard(.interactively)
+        .background(Color.clear)
+    }
+
+    @ViewBuilder
+    private var profileInsightScrollContent: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            if SelfProfileInsightStore.isStaleComparedToProfile(),
+               payload?.insight != nil {
+                staleBanner
+            }
+
+            if let errorText {
+                profileErrorCallout(errorText)
+            }
+
+            if let insight = payload?.insight {
+                SelfProfileInsightSections(insight: insight, bottomSpacerMin: 8)
+
+                if let savedAt = payload?.savedAt {
+                    Text(savedAt.formatted(date: .abbreviated, time: .shortened))
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(palette.secondaryLabel)
+                        .frame(maxWidth: .infinity)
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 12)
+                }
+            } else {
+                ContentUnavailableView(
+                    "Henüz özet yok",
+                    systemImage: "sparkles",
+                    description: Text(
+                        "Profil analizi tamamlanınca burada saklanır. "
+                            + "Aşağıdan şimdi de oluşturabilirsin."
+                    )
+                )
+                .padding(.vertical, 40)
+                .frame(maxWidth: .infinity)
+            }
+        }
+    }
+
+    private func profileErrorCallout(_ message: String) -> some View {
+        Text(message)
+            .font(.system(size: 15))
+            .foregroundStyle(CharacterInsightChromePalette.errorInk)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(CharacterInsightChromePalette.errorContainerFill.opacity(0.35))
+            )
+    }
+
     // MARK: - Üst çubuk
 
     private var stickyHeader: some View {
@@ -117,43 +131,72 @@ struct ProfileCharacterInsightView: View {
                 Button {
                     dismiss()
                 } label: {
-                    Image(systemName: "chevron.backward")
-                        .font(.system(size: 20, weight: .medium))
-                        .foregroundStyle(palette.headerIconMuted)
-                        .frame(width: 44, height: 44)
-                        .contentShape(Rectangle())
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(Color.primary)
+                        .frame(width: 36, height: 36)
+                        .background(
+                            HarmonyPanelChrome.toolbarBackGlass(
+                                diameter: 36,
+                                colorScheme: colorScheme,
+                                reduceTransparency: reduceTransparency
+                            )
+                        )
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Geri")
 
                 Spacer(minLength: 0)
 
-                Text("Karakter Özetin")
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(Color(hex: 0xFF2D55))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.82)
+                characterInsightToolbarTitle
 
                 Spacer(minLength: 0)
 
                 Color.clear
-                    .frame(width: 44, height: 44)
+                    .frame(width: 36, height: 36)
                     .allowsHitTesting(false)
             }
             .padding(.horizontal, 20)
             .frame(height: 56)
 
             Rectangle()
-                .fill(palette.headerDivider.opacity(0.35))
+                .fill(Color.primary.opacity(colorScheme == .dark ? 0.14 : 0.08))
                 .frame(height: 1)
         }
         .frame(maxWidth: .infinity)
-        .background(.regularMaterial.opacity(colorScheme == .dark ? 0.82 : 0.88))
+        .background(Color.clear)
+    }
+
+    private var characterInsightToolbarTitle: some View {
+        Text("Karakter Özetin")
+            .font(.system(size: 19, weight: .heavy, design: .default))
+            .tracking(-0.45)
+            .foregroundStyle(Color(hex: 0xE51245))
+            .lineLimit(1)
+            .minimumScaleFactor(0.82)
+            .shadow(color: insightNavTitleShadowPrimary, radius: 0, x: 0, y: 1)
+            .shadow(color: insightNavTitleShadowSecondary, radius: 2, x: 0, y: 0)
+            .shadow(color: insightNavTitleShadowHighlight, radius: 1, x: 0, y: -0.5)
+    }
+
+    private var insightNavTitleShadowPrimary: Color {
+        colorScheme == .dark ? Color.black.opacity(0.55) : Color.black.opacity(0.22)
+    }
+
+    private var insightNavTitleShadowSecondary: Color {
+        colorScheme == .dark ? Color.black.opacity(0.35) : Color.black.opacity(0.08)
+    }
+
+    private var insightNavTitleShadowHighlight: Color {
+        colorScheme == .dark ? Color.white.opacity(0.12) : Color.clear
     }
 
     private var analysisLoadingOverlay: some View {
         ZStack {
-            palette.pageBackground
-                .opacity(colorScheme == .dark ? 0.92 : 0.96)
+            MeshAuroraBackgroundView()
+                .ignoresSafeArea()
+            Rectangle()
+                .fill(Color.black.opacity(colorScheme == .dark ? 0.42 : 0.28))
                 .ignoresSafeArea()
 
             VStack(spacing: 20) {
@@ -162,7 +205,7 @@ struct ProfileCharacterInsightView: View {
 
                 Text("Analiz yenileniyor…")
                     .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(palette.secondaryLabel)
+                    .foregroundStyle(.white.opacity(0.92))
             }
         }
         .allowsHitTesting(true)
@@ -205,9 +248,13 @@ struct ProfileCharacterInsightView: View {
             .foregroundStyle(Color.white)
             .frame(maxWidth: .infinity)
             .frame(minHeight: 56)
-            .background(Color(hex: 0xFF2D55))
-            .clipShape(Capsule(style: .continuous))
-            .shadow(color: Color(hex: 0xFF2D55).opacity(0.22), radius: 22, x: 0, y: 10)
+            .background(HarmonyPanelChrome.primaryCTAFill(cornerRadius: 28, colorScheme: colorScheme))
+            .shadow(
+                color: Color.black.opacity(colorScheme == .dark ? 0.35 : 0.14),
+                radius: 14,
+                x: 0,
+                y: 6
+            )
         }
         .buttonStyle(ProfileInsightPrimaryTapStyle(scale: 0.97))
         .disabled(isRefreshing)
@@ -216,7 +263,7 @@ struct ProfileCharacterInsightView: View {
         .padding(.top, 12)
         .padding(.bottom, 14)
         .frame(maxWidth: .infinity)
-        .background(.regularMaterial.opacity(colorScheme == .dark ? 0.9 : 0.92))
+        .background(.ultraThinMaterial)
     }
 
     private var bottomButtonTitle: String {
@@ -259,27 +306,6 @@ struct ProfileCharacterInsightView: View {
 private enum CharacterInsightChromePalette {
     case light
     case dark
-
-    var pageBackground: Color {
-        switch self {
-        case .light: return Color(hex: 0xFAF9FE)
-        case .dark: return Color(hex: 0x131315)
-        }
-    }
-
-    var headerDivider: Color {
-        switch self {
-        case .light: return Color(hex: 0xE3E2E7)
-        case .dark: return Color.white.opacity(0.12)
-        }
-    }
-
-    var headerIconMuted: Color {
-        switch self {
-        case .light: return Color(hex: 0x5D3F40)
-        case .dark: return Color(hex: 0xE6BCBD).opacity(0.88)
-        }
-    }
 
     var secondaryLabel: Color {
         switch self {

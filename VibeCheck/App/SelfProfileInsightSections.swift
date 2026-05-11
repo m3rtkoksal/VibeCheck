@@ -164,13 +164,14 @@ struct SelfProfileInsightSections: View {
                         trait: trait,
                         title: CharacterInsightCopy.traitDisplayTitle(for: trait.id),
                         fillColor: CharacterInsightCopy.traitBarFill(for: trait.id),
-                        palette: palette
+                        palette: palette,
+                        colorScheme: colorScheme
                     )
                 }
             }
             .padding(.horizontal, SelfProfileInsightSections.dimensionsCardPadding)
             .padding(.vertical, SelfProfileInsightSections.dimensionsCardPadding)
-            .modifier(CharacterSoftCard(palette: palette, cornerRadius: 24))
+            .modifier(CharacterHarmonyGlassCard(cornerRadius: 24))
         }
     }
 
@@ -183,8 +184,10 @@ struct SelfProfileInsightSections: View {
         return VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 8) {
                 Image(systemName: "brain.fill")
-                    .font(.system(size: 22, weight: .semibold))
+                    .font(.system(size: 20, weight: .semibold))
                     .foregroundStyle(CharacterInsightCopy.vibePink)
+                    .frame(width: 40, height: 40)
+                    .background(HarmonyPanelChrome.toolbarRoundGlass(diameter: 40, colorScheme: colorScheme))
 
                 Text("Özet")
                     .font(.system(size: 22, weight: .semibold))
@@ -213,7 +216,7 @@ struct SelfProfileInsightSections: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(24)
-        .modifier(CharacterSoftCard(palette: palette, cornerRadius: 24))
+        .modifier(CharacterHarmonyGlassCard(cornerRadius: 24))
     }
 
     // MARK: Hatırlatmalar
@@ -229,8 +232,10 @@ struct SelfProfileInsightSections: View {
             VStack(alignment: .leading, spacing: 16) {
                 HStack(spacing: 8) {
                     Image(systemName: "lightbulb.fill")
-                        .font(.system(size: 22, weight: .semibold))
+                        .font(.system(size: 20, weight: .semibold))
                         .foregroundStyle(CharacterInsightCopy.vibePink)
+                        .frame(width: 40, height: 40)
+                        .background(HarmonyPanelChrome.toolbarRoundGlass(diameter: 40, colorScheme: colorScheme))
 
                     Text("Nazik Hatırlatmalar")
                         .font(.system(size: 22, weight: .semibold))
@@ -248,17 +253,33 @@ struct SelfProfileInsightSections: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(24)
-            .background(
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(CharacterInsightCopy.errorContainer.opacity(colorScheme == .dark ? 0.14 : 0.2))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .stroke(
-                        CharacterInsightCopy.errorContainer.opacity(0.35),
-                        lineWidth: 1
-                    )
-            )
+            .background {
+                ZStack {
+                    HarmonyPanelChrome.panelBackdrop(cornerRadius: 24, colorScheme: colorScheme)
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    CharacterInsightCopy.errorContainer.opacity(
+                                        colorScheme == .dark ? 0.2 : 0.32
+                                    ),
+                                    CharacterInsightCopy.errorContainer.opacity(
+                                        colorScheme == .dark ? 0.08 : 0.14
+                                    ),
+                                    Color.clear,
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                }
+                .shadow(
+                    color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme),
+                    radius: 14,
+                    x: 0,
+                    y: 6
+                )
+            }
         }
     }
 }
@@ -270,6 +291,7 @@ private struct CharacterDimensionRow: View {
     let title: String
     let fillColor: Color
     let palette: CharacterInsightPalette
+    let colorScheme: ColorScheme
 
     private var percent: Int {
         min(100, max(0, trait.percent))
@@ -293,7 +315,7 @@ private struct CharacterDimensionRow: View {
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule()
-                        .fill(palette.trackFill)
+                        .fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.08))
                     Capsule()
                         .fill(fillColor)
                         .frame(width: geo.size.width * CGFloat(percent) / 100.0)
@@ -311,13 +333,6 @@ private enum CharacterInsightPalette {
     case light
     case dark
 
-    var pageCompatible: Color {
-        switch self {
-        case .light: return Color(hex: 0xFAF9FE)
-        case .dark: return Color(hex: 0x131315)
-        }
-    }
-
     var onSurface: Color {
         switch self {
         case .light: return Color(hex: 0x1A1B1F)
@@ -329,27 +344,6 @@ private enum CharacterInsightPalette {
         switch self {
         case .light: return Color(hex: 0x5D3F40)
         case .dark: return Color(hex: 0xE6BCBD)
-        }
-    }
-
-    var cardFill: Color {
-        switch self {
-        case .light: return Color(hex: 0xFFFFFF)
-        case .dark: return Color(hex: 0x1E1E23)
-        }
-    }
-
-    var stroke: Color {
-        switch self {
-        case .light: return Color(hex: 0xE3E2E7).opacity(0.45)
-        case .dark: return Color.white.opacity(0.1)
-        }
-    }
-
-    var trackFill: Color {
-        switch self {
-        case .light: return Color(hex: 0xEEEDF3)
-        case .dark: return Color(hex: 0x35343A)
         }
     }
 }
@@ -382,33 +376,24 @@ private enum CharacterInsightCopy {
     }
 }
 
-private struct CharacterSoftCard: ViewModifier {
+private struct CharacterHarmonyGlassCard: ViewModifier {
     @Environment(\.colorScheme) private var colorScheme
 
-    let palette: CharacterInsightPalette
     let cornerRadius: CGFloat
 
     func body(content: Content) -> some View {
         content
             .background(
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .fill(palette.cardFill)
+                HarmonyPanelChrome.panelBackdrop(cornerRadius: cornerRadius, colorScheme: colorScheme)
                     .shadow(
-                        color: Color.black.opacity(
-                            colorScheme == .dark ? 0.32 : 0.04
-                        ),
-                        radius: 20,
+                        color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme),
+                        radius: 14,
                         x: 0,
-                        y: 10
+                        y: 6
                     )
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .stroke(palette.stroke, lineWidth: 1)
             )
     }
 }
-
 private extension Color {
     init(hex: UInt32, alpha: Double = 1.0) {
         let r = Double((hex & 0xFF0000) >> 16) / 255.0

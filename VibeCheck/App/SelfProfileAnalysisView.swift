@@ -10,13 +10,9 @@ struct SelfProfileAnalysisView: View {
 
     @Environment(\.colorScheme) private var colorScheme
 
-    private var pageBackground: Color {
-        colorScheme == .dark ? Color(hex: 0x131315) : Color(hex: 0xFAF9FE)
-    }
-
     var body: some View {
         ZStack {
-            pageBackground
+            MeshAuroraBackgroundView()
                 .ignoresSafeArea()
 
             ScrollView {
@@ -65,10 +61,14 @@ struct SelfProfileAnalysisView: View {
                 .padding(.top, 12)
                 .padding(.bottom, 120)
             }
+            .scrollDismissesKeyboard(.interactively)
+            .background(Color.clear)
         }
         .navigationTitle("Profil Analizi")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
+        .toolbarBackground(Color.clear, for: .navigationBar)
+        .tint(Color(hex: 0xE51245))
         .safeAreaInset(edge: .bottom, spacing: 0) {
             Button {
                 hasEnteredMainApp = true
