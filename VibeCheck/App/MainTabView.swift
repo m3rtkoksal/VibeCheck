@@ -1,11 +1,12 @@
 import SwiftUI
+import UIKit
 import FirebaseFirestore
 
 // MARK: - Ana sekmeler üst çubuğu (SettingsTabView ile aynı düzen)
 
 private enum MainTabGlassTopPalette {
     static func divider(_ scheme: ColorScheme) -> Color {
-        scheme == .dark ? Color.white.opacity(0.12) : Color(hex: 0xE9E7ED)
+        scheme == .dark ? Color.white.opacity(0.08) : Color(hex: 0xE9E7ED).opacity(0.4)
     }
 }
 
@@ -15,6 +16,7 @@ struct MainTabGlassTopBar<Leading: View, Trailing: View>: View {
     @ViewBuilder var trailing: () -> Trailing
 
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     var body: some View {
         VStack(spacing: 0) {
@@ -26,7 +28,11 @@ struct MainTabGlassTopBar<Leading: View, Trailing: View>: View {
                 Text(title)
                     .font(.system(size: 20, weight: .heavy, design: .default))
                     .tracking(-1)
-                    .foregroundStyle(Color(hex: 0xFF2D55))
+                    .foregroundStyle(Color(hex: 0xE51245))
+                    /// Açık modda beyaz gölge mesh’te leke yapıyordu; koyu kontur + hafif glow.
+                    .shadow(color: colorScheme == .dark ? Color.black.opacity(0.55) : Color.black.opacity(0.22), radius: 0, x: 0, y: 1)
+                    .shadow(color: colorScheme == .dark ? Color.black.opacity(0.35) : Color.black.opacity(0.08), radius: 2, x: 0, y: 0)
+                    .shadow(color: colorScheme == .dark ? Color.white.opacity(0.12) : Color.clear, radius: 1, x: 0, y: -0.5)
 
                 Spacer(minLength: 0)
 
@@ -40,7 +46,13 @@ struct MainTabGlassTopBar<Leading: View, Trailing: View>: View {
                 .frame(height: 1)
         }
         .frame(maxWidth: .infinity)
-        .background(.regularMaterial.opacity(colorScheme == .dark ? 0.88 : 0.94))
+        .background {
+            if reduceTransparency {
+                Rectangle().fill(.regularMaterial)
+            } else {
+                Color.clear
+            }
+        }
     }
 }
 
@@ -48,9 +60,13 @@ struct MainTabGlassTopBar<Leading: View, Trailing: View>: View {
 struct MainTabView: View {
     @State private var selectedTab: MainTab = .history
 
+    init() {
+        MainTabViewChrome.configureTransparentStacks()
+    }
+
     var body: some View {
         TabView(selection: $selectedTab) {
-            NavigationStack {
+            nestedNavigation {
                 ProfileEditorView()
             }
             .tag(MainTab.profile)
@@ -58,7 +74,7 @@ struct MainTabView: View {
                 Label("Profil", systemImage: "person.circle.fill")
             }
 
-            NavigationStack {
+            nestedNavigation {
                 CompatibilityAnalysisView()
             }
             .tag(MainTab.compatibility)
@@ -66,7 +82,7 @@ struct MainTabView: View {
                 Label("Uyum", systemImage: "heart.text.square.fill")
             }
 
-            NavigationStack {
+            nestedNavigation {
                 CompatibilityHistoryView()
             }
             .tag(MainTab.history)
@@ -74,7 +90,7 @@ struct MainTabView: View {
                 Label("Geçmiş", systemImage: "clock.arrow.trianglehead.counterclockwise.rotate.90")
             }
 
-            NavigationStack {
+            nestedNavigation {
                 SettingsTabView()
             }
             .tag(MainTab.settings)
@@ -82,9 +98,124 @@ struct MainTabView: View {
                 Label("Ayarlar", systemImage: "gearshape.fill")
             }
         }
+        .background {
+            HostingScrollSurfaceClearTrigger()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .allowsHitTesting(false)
+        }
+        .background(Color.clear)
+        .toolbarBackground(Color.clear, for: .tabBar)
         .tint(.pink)
         .onReceive(NotificationCenter.default.publisher(for: .vibecheckOpenHistoryTab)) { _ in
             selectedTab = .history
+        }
+        .onAppear {
+            MainTabViewChrome.clearMainWindowBackgroundIfNeeded()
+        }
+    }
+
+    /// Mesh bu `NavigationStack` katmanına bağlanır; `TabView` arkası tek başına görünür olmayabiliyor.
+    /// Kök görünüm `Color.clear` kalmalı.
+    private func nestedNavigation<Content: View>(@ViewBuilder root: () -> Content) -> some View {
+        NavigationStack {
+            ZStack {
+                MeshAuroraBackgroundView()
+                    .ignoresSafeArea()
+                root()
+                    .background(Color.clear)
+            }
+        }
+        .toolbarBackground(Color.clear, for: .navigationBar)
+    }
+}
+
+// MARK: - Tab / Nav host arka plan (UIKit)
+
+private enum MainTabViewChrome {
+    static func clearMainWindowBackgroundIfNeeded() {
+        for scene in UIApplication.shared.connectedScenes {
+            guard let windowScene = scene as? UIWindowScene else { continue }
+            for window in windowScene.windows {
+                window.backgroundColor = .clear
+            }
+        }
+    }
+
+    static func configureTransparentStacks() {
+        let tab = UITabBarAppearance()
+        tab.configureWithTransparentBackground()
+        tab.backgroundColor = .clear
+        let tabBar = UITabBar.appearance()
+        tabBar.standardAppearance = tab
+        tabBar.scrollEdgeAppearance = tab
+
+        let nav = UINavigationBarAppearance()
+        nav.configureWithTransparentBackground()
+        nav.backgroundColor = .clear
+        let bar = UINavigationBar.appearance()
+        bar.standardAppearance = nav
+        bar.scrollEdgeAppearance = nav
+        bar.compactAppearance = nav
+        bar.compactScrollEdgeAppearance = nav
+        bar.isTranslucent = true
+
+        UIScrollView.appearance().backgroundColor = .clear
+        UITableView.appearance().backgroundColor = .clear
+        UICollectionView.appearance().backgroundColor = .clear
+    }
+}
+
+// MARK: - List / koleksiyon host opak zemini
+
+/// SwiftUI `List` (özellikle iOS 17+) bazı durumlarda `UITableView` / `UICollectionView` kökünde sistem beyazını bırakıyor;
+/// `UITableView.appearance()` yetmeyebiliyor — penceredeki örnekleri doğrudan temizler.
+private struct HostingScrollSurfaceClearTrigger: UIViewRepresentable {
+    final class Coordinator {
+        weak var attachedWindow: UIWindow?
+        var debounceWork: DispatchWorkItem?
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    func makeUIView(context: Context) -> UIView {
+        let v = UIView()
+        v.isUserInteractionEnabled = false
+        v.backgroundColor = .clear
+        return v
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {
+        guard let window = uiView.window else { return }
+
+        context.coordinator.debounceWork?.cancel()
+        let work = DispatchWorkItem {
+            HostingScrollSurfaceClearTrigger.clearOpaqueScrollSurfaces(from: window)
+            context.coordinator.attachedWindow = window
+        }
+        context.coordinator.debounceWork = work
+        DispatchQueue.main.async(execute: work)
+    }
+
+    private static func clearOpaqueScrollSurfaces(from root: UIView) {
+        var stack: [UIView] = [root]
+        var visited = Set<ObjectIdentifier>()
+        while let v = stack.popLast() {
+            let oid = ObjectIdentifier(v)
+            if visited.contains(oid) { continue }
+            visited.insert(oid)
+
+            if let tv = v as? UITableView {
+                tv.backgroundColor = .clear
+                tv.isOpaque = false
+            }
+            if let cv = v as? UICollectionView {
+                cv.backgroundColor = .clear
+                cv.isOpaque = false
+            }
+
+            stack.append(contentsOf: v.subviews)
         }
     }
 }
@@ -96,31 +227,29 @@ private enum MainTab: Hashable {
     case settings
 }
 
+/// `List` içindeki `NavigationLink` sistem `>` okunu hücreye taşır; programatik hedefle kaldırılır.
+private enum HistoryDetailRoute: Hashable {
+    case analysis(UUID)
+}
+
 private struct CompatibilityHistoryView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @State private var items: [CompatibilityHistoryItem] = CompatibilityHistoryStore.load()
     @State private var visibleCount = 8
     @State private var partnerPhotoURLs: [UUID: String] = [:]
     @State private var partnerDisplayNames: [UUID: String] = [:]
     @State private var sortOption: HistorySortOption = .latest
-    @Environment(\.colorScheme) private var colorScheme
+    @State private var historyDetailRoute: HistoryDetailRoute?
 
     var body: some View {
-        ZStack {
-            LinearGradient(
-                colors: historyBackgroundColors,
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+        VStack(spacing: 0) {
+            MainTabGlassTopBar(title: "Geçmiş") {
+                IncomingNotificationsToolbarButton()
+            } trailing: {
+                Color.clear.frame(width: 44, height: 44)
+            }
 
-            VStack(spacing: 0) {
-                MainTabGlassTopBar(title: "Geçmiş") {
-                    IncomingNotificationsToolbarButton()
-                } trailing: {
-                    Color.clear.frame(width: 44, height: 44)
-                }
-
-                List {
+            List {
                     Section {
                         summaryInsights
                             .listRowInsets(EdgeInsets(top: 14, leading: 18, bottom: 8, trailing: 18))
@@ -130,7 +259,9 @@ private struct CompatibilityHistoryView: View {
 
                     Section {
                         sonAnalizlerHeaderRow
-                            .listRowInsets(EdgeInsets(top: 0, leading: 18, bottom: 10, trailing: 18))
+                            .listRowInsets(
+                                EdgeInsets(top: 0, leading: 18, bottom: 10, trailing: 18)
+                            )
                             .listRowBackground(Color.clear)
                             .listRowSeparator(.hidden)
                     }
@@ -145,22 +276,14 @@ private struct CompatibilityHistoryView: View {
                     } else {
                         Section {
                             ForEach(displayedHistoryItems) { item in
-                                NavigationLink {
-                                    CompatibilityAnalysisResultView(
-                                        output: AIOnlyAnalysisOutput(
-                                            id: item.id,
-                                            partnerQuery: item.partnerQuery,
-                                            ai: item.ai,
-                                            historyId: item.id,
-                                            myRating: item.myRating,
-                                            receivedRating: item.receivedRating
-                                        )
-                                    )
+                                Button {
+                                    historyDetailRoute = .analysis(item.id)
                                 } label: {
-                                    historyCard(item: item, showsAccessoryChevron: false)
+                                    historyCard(item: item, showsAccessoryChevron: true)
                                         .contentShape(Rectangle())
                                 }
-                                .listRowInsets(EdgeInsets(top: 6, leading: 18, bottom: 6, trailing: 14))
+                                .buttonStyle(.plain)
+                                .listRowInsets(EdgeInsets(top: 6, leading: 18, bottom: 6, trailing: 18))
                                 .listRowBackground(Color.clear)
                                 .listRowSeparator(.hidden)
                                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
@@ -193,9 +316,28 @@ private struct CompatibilityHistoryView: View {
                 .listSectionSpacing(20)
                 .listStyle(.plain)
                 .scrollContentBackground(.hidden)
-            }
         }
         .navigationBarHidden(true)
+        .navigationDestination(item: $historyDetailRoute) { route in
+            switch route {
+            case let .analysis(id):
+                if let item = items.first(where: { $0.id == id }) {
+                    CompatibilityAnalysisResultView(
+                        output: AIOnlyAnalysisOutput(
+                            id: item.id,
+                            partnerQuery: item.partnerQuery,
+                            ai: item.ai,
+                            historyId: item.id,
+                            myRating: item.myRating,
+                            receivedRating: item.receivedRating
+                        )
+                    )
+                } else {
+                    Text("Kayıt bulunamadı")
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
         .onAppear {
             reloadHistory()
             Task { await preloadPartnerPhotos() }
@@ -208,17 +350,27 @@ private struct CompatibilityHistoryView: View {
         }
     }
 
+    /// Mesh arka planla uyum: opak kart yerine lavanta‑cyan süzülü malzeme + ince kenarlık.
+    private func harmonyPanelBackdrop(cornerRadius: CGFloat = 24) -> some View {
+        HarmonyPanelChrome.panelBackdrop(cornerRadius: cornerRadius, colorScheme: colorScheme)
+    }
+
+    /// Kart gölgesi — mesh üzerinde daha yumuşak
+    private var harmonyCardShadowColor: Color {
+        HarmonyPanelChrome.cardShadow(colorScheme: colorScheme)
+    }
+
     /// List + NavigationLink kendi disclosure ikonunu gösterdiği için çift ok olmasın.
     private var displayedHistoryItems: [CompatibilityHistoryItem] {
         Array(sortedItems.prefix(visibleCount))
     }
 
     private var sonAnalizlerHeaderRow: some View {
-        HStack {
+        HStack(alignment: .center, spacing: 10) {
             Text("Son Analizler")
                 .font(.system(size: 22, weight: .bold))
                 .foregroundStyle(.primary)
-            Spacer()
+            Spacer(minLength: 8)
             Menu {
                 sortOptionButton(.latest, title: "En Yeni")
                 sortOptionButton(.aiScore, title: "AI Uyum")
@@ -228,7 +380,10 @@ private struct CompatibilityHistoryView: View {
                 Image(systemName: "arrow.up.arrow.down.circle.fill")
                     .font(.system(size: 20, weight: .semibold))
                     .foregroundStyle(Color(hex: 0xE51245))
+                    .frame(width: 40, height: 40)
+                    .background(HarmonyPanelChrome.toolbarRoundGlass(diameter: 40, colorScheme: colorScheme))
             }
+            .menuStyle(.button)
         }
     }
 
@@ -243,8 +398,14 @@ private struct CompatibilityHistoryView: View {
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 18)
                 .padding(.vertical, 10)
-                .background(Color(.secondarySystemBackground))
-                .clipShape(Capsule())
+                .background(
+                    Capsule(style: .continuous)
+                        .fill(Material.thin)
+                        .overlay {
+                            Capsule(style: .continuous)
+                                .strokeBorder(Color.primary.opacity(colorScheme == .dark ? 0.22 : 0.08), lineWidth: 1)
+                        }
+                )
                 .frame(maxWidth: .infinity)
                 .multilineTextAlignment(.center)
         }
@@ -310,29 +471,11 @@ private struct CompatibilityHistoryView: View {
         }
     }
 
-    private var historyBackgroundColors: [Color] {
-        if colorScheme == .dark {
-            return [
-                Color(hex: 0x0B0C12),
-                Color(hex: 0x11131E),
-                Color(hex: 0x17111E),
-            ]
-        } else {
-            return [
-                Color(hex: 0xFAF9FE),
-                Color(hex: 0xF4F3F8),
-                Color.white,
-            ]
-        }
-    }
-
     private func preloadPartnerPhotos() async {
         for item in items where partnerPhotoURLs[item.id] == nil {
             if let url = try? await fetchPartnerPhotoURL(partnerQuery: item.partnerQuery),
                !url.isEmpty {
                 partnerPhotoURLs[item.id] = url
-            } else {
-                partnerPhotoURLs[item.id] = ""
             }
         }
 
@@ -372,21 +515,20 @@ private struct CompatibilityHistoryView: View {
             }
             .padding(18)
             .background(
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(Color(.systemBackground))
-                    .shadow(color: .black.opacity(0.04), radius: 14, x: 0, y: 8)
+                harmonyPanelBackdrop(cornerRadius: 24)
+                    .shadow(color: harmonyCardShadowColor, radius: 14, x: 0, y: 8)
             )
 
             HStack(spacing: 12) {
                 insightMiniCard(
                     icon: "heart.fill",
-                    iconColor: Color(hex: 0x4C4ACA),
+                    iconColor: Color(hex: 0x6D53E6),
                     value: "%\(avgAI)",
                     title: "Ortalama Uyum"
                 )
                 insightMiniCard(
                     icon: "bolt.fill",
-                    iconColor: Color(hex: 0x00855F),
+                    iconColor: Color(hex: 0x0D9488),
                     value: "%\(best)",
                     title: "En Yüksek Skor"
                 )
@@ -416,9 +558,8 @@ private struct CompatibilityHistoryView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.04), radius: 12, x: 0, y: 6)
+            harmonyPanelBackdrop(cornerRadius: 24)
+                .shadow(color: harmonyCardShadowColor, radius: 12, x: 0, y: 6)
         )
     }
 
@@ -434,134 +575,236 @@ private struct CompatibilityHistoryView: View {
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.04), radius: 12, x: 0, y: 6)
+            harmonyPanelBackdrop(cornerRadius: 24)
+                .shadow(color: harmonyCardShadowColor, radius: 12, x: 0, y: 6)
         )
     }
 
     private func historyCard(item: CompatibilityHistoryItem, showsAccessoryChevron: Bool = true) -> some View {
-        HStack(spacing: 12) {
-            partnerAvatar(for: item)
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .center, spacing: 12) {
+                partnerAvatar(for: item, side: 60)
 
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text(partnerDisplayNames[item.id] ?? sanitizedName(item.partnerQuery))
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.system(size: 17, weight: .semibold))
                         .foregroundStyle(.primary)
                         .lineLimit(1)
-                    Spacer(minLength: 8)
+
                     Text(formattedDate(item.createdAt))
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(.secondary)
                 }
 
-                HStack(spacing: 8) {
-                    metricChip(
-                        label: "AI Uyum",
-                        value: "%\(item.ai.percent)",
-                        tint: Color(hex: 0xBA0034)
-                    )
-                    metricChip(
-                        label: "Senin Puanın",
-                        value: item.myRating.map { "%\($0.overallScore)" } ?? "Bekleniyor",
-                        tint: Color(hex: 0x4C4ACA)
-                    )
-                    metricChip(
-                        label: "Sana Verilen",
-                        value: item.receivedRating.map { "%\($0.overallScore)" } ?? "Bekleniyor",
-                        tint: Color(hex: 0x00855F)
-                    )
+                Spacer(minLength: 4)
+
+                if showsAccessoryChevron {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Color(.tertiaryLabel))
+                        .frame(width: 34, height: 34)
+                        .background {
+                            Circle()
+                                .fill(Material.ultraThinMaterial)
+                                .overlay {
+                                    Circle()
+                                        .strokeBorder(
+                                            Color.primary.opacity(colorScheme == .dark ? 0.18 : 0.07),
+                                            lineWidth: 1
+                                        )
+                                }
+                        }
+                        .accessibilityHidden(true)
                 }
             }
 
-            if showsAccessoryChevron {
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(Color(.tertiaryLabel))
+            HStack(spacing: 8) {
+                metricChip(
+                    label: "AI Uyum",
+                    value: "%\(item.ai.percent)",
+                    kind: .ai
+                )
+                metricChip(
+                    label: "Senin Puanın",
+                    value: item.myRating.map { "%\($0.overallScore)" } ?? "Bekleniyor",
+                    kind: .myScore
+                )
+                metricChip(
+                    label: "Sana Verilen",
+                    value: item.receivedRating.map { "%\($0.overallScore)" } ?? "Bekleniyor",
+                    kind: .received
+                )
             }
         }
-        .padding(16)
+        .padding(18)
         .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.04), radius: 12, x: 0, y: 6)
+            harmonyPanelBackdrop(cornerRadius: 24)
+                .shadow(color: harmonyCardShadowColor, radius: 12, x: 0, y: 6)
         )
     }
 
-    private func metricChip(label: String, value: String, tint: Color) -> some View {
+    private enum HistoryMetricChipKind {
+        case ai
+        case myScore
+        case received
+
+        /// `harmonyPanelBackdrop` ile aynı pastel hâl (pembe / mor / cyan).
+        func labelTint(_ scheme: ColorScheme) -> Color {
+            switch self {
+            case .ai:
+                return Color(hex: scheme == .dark ? 0xFDA4AF : 0xE11D48)
+            case .myScore:
+                return Color(hex: scheme == .dark ? 0xC4B5FD : 0x6D28D9)
+            case .received:
+                return Color(hex: scheme == .dark ? 0x67E8F9 : 0x0891B2)
+            }
+        }
+
+        func mistGradient(_ scheme: ColorScheme) -> LinearGradient {
+            let d = scheme == .dark
+            switch self {
+            case .ai:
+                return LinearGradient(
+                    colors: [
+                        Color(hex: 0xFF2D55).opacity(d ? 0.38 : 0.2),
+                        Color(hex: 0xF9A8D4).opacity(d ? 0.22 : 0.14),
+                        Color(hex: 0xFFF1F9).opacity(d ? 0.14 : 0.38),
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            case .myScore:
+                return LinearGradient(
+                    colors: [
+                        Color(hex: 0x7C3AED).opacity(d ? 0.35 : 0.18),
+                        Color(hex: 0xDDD6FE).opacity(d ? 0.2 : 0.22),
+                        Color(hex: 0xEDE9FE).opacity(d ? 0.1 : 0.35),
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            case .received:
+                return LinearGradient(
+                    colors: [
+                        Color(hex: 0x0891B2).opacity(d ? 0.38 : 0.16),
+                        Color(hex: 0x22D3EE).opacity(d ? 0.2 : 0.12),
+                        Color(hex: 0xBAE6FD).opacity(d ? 0.12 : 0.32),
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
+        }
+
+        func strokeColor(_ scheme: ColorScheme) -> Color {
+            switch self {
+            case .ai:
+                return Color(hex: 0xFB7185).opacity(scheme == .dark ? 0.38 : 0.2)
+            case .myScore:
+                return Color(hex: 0xA78BFA).opacity(scheme == .dark ? 0.42 : 0.18)
+            case .received:
+                return Color(hex: 0x38BDF8).opacity(scheme == .dark ? 0.4 : 0.16)
+            }
+        }
+
+        /// Yüzde satırı için siyah yerine sıcak, okunaklı ton.
+        func valueTint(_ scheme: ColorScheme) -> Color {
+            switch self {
+            case .ai:
+                return scheme == .dark ? Color(hex: 0xFECDD3) : Color(hex: 0x9F1239)
+            case .myScore:
+                return scheme == .dark ? Color(hex: 0xE9D5FF) : Color(hex: 0x5B21B6)
+            case .received:
+                return scheme == .dark ? Color(hex: 0xCCFBF1) : Color(hex: 0x134E4A)
+            }
+        }
+    }
+
+    private func metricChip(label: String, value: String, kind: HistoryMetricChipKind) -> some View {
         let isPercentageValue = value.hasPrefix("%")
 
-        return VStack(alignment: .leading, spacing: 0) {
+        return VStack(alignment: .leading, spacing: 6) {
             Text(label)
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(tint)
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(kind.labelTint(colorScheme).opacity(colorScheme == .dark ? 0.82 : 0.76))
                 .lineLimit(1)
-                .minimumScaleFactor(0.85)
-                .frame(height: 14, alignment: .topLeading)
+                .minimumScaleFactor(0.82)
 
             Text(value)
                 .font(
                     isPercentageValue
-                        ? .system(size: 30, weight: .black, design: .rounded)
-                        : .system(size: 12, weight: .semibold)
+                        ? .system(size: 21, weight: .semibold, design: .rounded)
+                        : .system(size: 11, weight: .medium)
                 )
-                .foregroundStyle(isPercentageValue ? .primary : .secondary)
+                .foregroundStyle(isPercentageValue ? kind.valueTint(colorScheme) : Color.secondary)
                 .lineLimit(1)
-                .minimumScaleFactor(isPercentageValue ? 0.45 : 0.55)
+                .minimumScaleFactor(isPercentageValue ? 0.52 : 0.88)
                 .allowsTightening(true)
-                .padding(.bottom, isPercentageValue ? 0 : 3)
-                .frame(maxWidth: .infinity, minHeight: 48, alignment: .bottomLeading)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .frame(height: 84, alignment: .leading)
-        .padding(.horizontal, 6)
-        .padding(.vertical, 10)
-        .background(
-            LinearGradient(
-                colors: [
-                    tint.opacity(0.16),
-                    tint.opacity(0.05),
-                    Color(.secondarySystemBackground),
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(Color(.separator).opacity(0.18), lineWidth: 1)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .padding(.horizontal, 10)
+        .padding(.vertical, 11)
+        .frame(minHeight: 72)
+        .background(chipBackdrop(kind: kind))
     }
 
-    private func partnerAvatar(for item: CompatibilityHistoryItem) -> some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color(hex: 0xFFE8EE))
+    /// Küçük skor kutusu — kart `harmonyPanel` ile aynı renk ailesi (pembe / lavanta / cyan).
+    private func chipBackdrop(kind: HistoryMetricChipKind) -> some View {
+        let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
+        return ZStack {
+            shape.fill(Material.ultraThinMaterial)
+            shape.fill(kind.mistGradient(colorScheme))
+        }
+        .clipShape(shape)
+        .overlay(shape.strokeBorder(kind.strokeColor(colorScheme), lineWidth: 0.75))
+    }
+
+    private func partnerAvatar(for item: CompatibilityHistoryItem, side: CGFloat = 56) -> some View {
+        let radius = side * (14 / 56)
+        return ZStack {
+            RoundedRectangle(cornerRadius: radius, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color(hex: 0xEEF2FF),
+                            Color(hex: 0xFCE7F3),
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
 
             if let raw = partnerPhotoURLs[item.id], !raw.isEmpty,
                let url = URL(string: raw) {
                 AsyncImage(url: url) { phase in
                     switch phase {
+                    case .empty:
+                        ProgressView()
+                            .scaleEffect(0.75)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                     case let .success(image):
                         image
                             .resizable()
                             .scaledToFill()
-                    default:
+                    case .failure:
                         Image(systemName: "person.crop.square.fill")
-                            .font(.system(size: 22, weight: .semibold))
-                            .foregroundStyle(Color(hex: 0xBA0034).opacity(0.6))
+                            .font(.system(size: min(24, side * 0.4), weight: .semibold))
+                            .foregroundStyle(Color(hex: 0x7C3AED).opacity(0.72))
+                    @unknown default:
+                        Image(systemName: "person.crop.square.fill")
+                            .font(.system(size: min(24, side * 0.4), weight: .semibold))
+                            .foregroundStyle(Color(hex: 0x7C3AED).opacity(0.72))
                     }
                 }
             } else {
                 Image(systemName: "person.crop.square.fill")
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(Color(hex: 0xBA0034).opacity(0.6))
+                    .font(.system(size: min(24, side * 0.4), weight: .semibold))
+                    .foregroundStyle(Color(hex: 0x7C3AED).opacity(0.72))
             }
         }
-        .frame(width: 56, height: 56)
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .frame(width: side, height: side)
+        .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
     }
 
     private func sanitizedName(_ raw: String) -> String {
@@ -655,7 +898,7 @@ private struct CompatibilityHistoryView: View {
     }
 
     private func resolvePhotoURL(from data: [String: Any]) -> String? {
-        let keys = ["photoURL", "profilePhotoURL", "avatarURL"]
+        let keys = ["photoPublicURL", "photoURL", "profilePhotoURL", "avatarURL"]
         for key in keys {
             if let value = data[key] as? String {
                 let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -688,10 +931,7 @@ private extension Color {
 struct IncomingNotificationsToolbarButton: View {
     @ObservedObject private var incomingRatings = IncomingCompatibilityRatingsNotifier.shared
     @Environment(\.colorScheme) private var colorScheme
-
-    private var badgeWellFill: Color {
-        colorScheme == .dark ? Color(hex: 0x2A3244) : Color(hex: 0xFFFFFF)
-    }
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     private var bellTint: Color {
         colorScheme == .dark ? Color(hex: 0x5C8EFF) : Color(hex: 0x004BE3)
@@ -717,15 +957,32 @@ struct IncomingNotificationsToolbarButton: View {
         let labelWidth: CGFloat = count > 9 ? 56 : (count > 0 ? 52 : 44)
 
         return ZStack {
-            Circle()
-                .fill(badgeWellFill)
-                .frame(width: circleSize, height: circleSize)
-                .shadow(
-                    color: Color.black.opacity(colorScheme == .dark ? 0.35 : 0.08),
-                    radius: 3,
-                    x: 0,
-                    y: 1
-                )
+            Group {
+                if reduceTransparency {
+                    Circle()
+                        .fill(colorScheme == .dark ? Color(hex: 0x2A3244) : Color(hex: 0xFFFFFF))
+                } else {
+                    ZStack {
+                        Circle().fill(.ultraThinMaterial)
+                        Circle()
+                            .fill(Color.white.opacity(colorScheme == .dark ? 0.07 : 0.2))
+                    }
+                    .overlay {
+                        Circle()
+                            .strokeBorder(
+                                Color.primary.opacity(colorScheme == .dark ? 0.2 : 0.1),
+                                lineWidth: 1
+                            )
+                    }
+                }
+            }
+            .frame(width: circleSize, height: circleSize)
+            .shadow(
+                color: Color.black.opacity(colorScheme == .dark ? 0.35 : 0.08),
+                radius: 3,
+                x: 0,
+                y: 1
+            )
 
             Image(systemName: "bell.fill")
                 .font(.system(size: 17, weight: .semibold))

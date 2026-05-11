@@ -7,6 +7,7 @@ struct ThemeSelectionView: View {
 
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     private var palette: ThemeSelectionPalette {
         colorScheme == .dark ? .dark : .light
@@ -14,7 +15,7 @@ struct ThemeSelectionView: View {
 
     var body: some View {
         ZStack {
-            palette.pageBackground
+            MeshAuroraBackgroundView()
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
@@ -30,7 +31,13 @@ struct ThemeSelectionView: View {
                         .font(.system(size: 15))
                         .foregroundStyle(palette.onSurfaceVariant)
                         .fixedSize(horizontal: false, vertical: true)
-                        .padding(.horizontal, 8)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 14)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(
+                            HarmonyPanelChrome.panelBackdrop(cornerRadius: 20, colorScheme: colorScheme)
+                                .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme), radius: 10, x: 0, y: 4)
+                        )
 
                         themeOptionsCard
 
@@ -42,12 +49,15 @@ struct ThemeSelectionView: View {
                     .padding(.top, 20)
                     .padding(.bottom, 24)
                 }
+                .scrollDismissesKeyboard(.interactively)
+                .background(Color.clear)
             }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             applyDock
         }
         .toolbar(.hidden, for: .navigationBar)
+        .tint(Color(hex: 0xE51245))
         .onAppear { pendingSelection = colorSchemePreference }
     }
 
@@ -60,23 +70,27 @@ struct ThemeSelectionView: View {
                     Button {
                         dismiss()
                     } label: {
-                        Image(systemName: "chevron.backward")
-                            .font(.system(size: 20, weight: .medium))
-                            .foregroundStyle(palette.onSurfaceVariant)
-                            .frame(width: 44, height: 44)
-                            .contentShape(Rectangle())
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(Color.primary)
+                            .frame(width: 36, height: 36)
+                            .background(
+                                HarmonyPanelChrome.toolbarBackGlass(
+                                    diameter: 36,
+                                    colorScheme: colorScheme,
+                                    reduceTransparency: reduceTransparency
+                                )
+                            )
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("Geri")
 
                     Spacer(minLength: 0)
 
                     appearanceTopBarMenu
                 }
 
-                Text("Görünüm")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(palette.topBarTitle)
-                    .lineLimit(1)
+                themeToolbarTitle
             }
             .padding(.horizontal, 20)
             .frame(height: 56)
@@ -86,7 +100,19 @@ struct ThemeSelectionView: View {
                 .frame(height: 1)
         }
         .frame(maxWidth: .infinity)
-        .background(.regularMaterial.opacity(colorScheme == .dark ? 0.88 : 0.92))
+        .background(Color.clear)
+    }
+
+    private var themeToolbarTitle: some View {
+        let dark = colorScheme == .dark
+        return Text("Görünüm")
+            .font(.system(size: 20, weight: .heavy, design: .default))
+            .tracking(-0.5)
+            .foregroundStyle(Color(hex: 0xE51245))
+            .shadow(color: dark ? Color.black.opacity(0.55) : Color.black.opacity(0.22), radius: 0, x: 0, y: 1)
+            .shadow(color: dark ? Color.black.opacity(0.35) : Color.black.opacity(0.08), radius: 2, x: 0, y: 0)
+            .shadow(color: dark ? Color.white.opacity(0.12) : Color.clear, radius: 1, x: 0, y: -0.5)
+            .lineLimit(1)
     }
 
     private var appearanceTopBarMenu: some View {
@@ -95,10 +121,10 @@ struct ThemeSelectionView: View {
                 .disabled(true)
         } label: {
             Image(systemName: "ellipsis")
-                .font(.system(size: 20, weight: .medium))
-                .foregroundStyle(palette.onSurfaceVariant)
-                .frame(width: 44, height: 44)
-                .contentShape(Rectangle())
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(Color.primary)
+                .frame(width: 36, height: 36)
+                .background(HarmonyPanelChrome.toolbarRoundGlass(diameter: 36, colorScheme: colorScheme))
         }
     }
 
@@ -111,11 +137,9 @@ struct ThemeSelectionView: View {
             themeOptionRow(title: "Sistem", value: 0, symbol: "circle.lefthalf.filled", showDivider: false)
         }
         .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(palette.cardFill)
-                .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.35 : 0.04), radius: 20, x: 0, y: 10)
+            HarmonyPanelChrome.panelBackdrop(cornerRadius: 24, colorScheme: colorScheme)
+                .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme), radius: 14, x: 0, y: 6)
         )
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
     }
 
     private func themeOptionRow(
@@ -131,12 +155,9 @@ struct ThemeSelectionView: View {
                 HStack(spacing: 16) {
                     Image(systemName: symbol)
                         .font(.system(size: 20, weight: .medium))
-                        .foregroundStyle(palette.onSurface)
+                        .foregroundStyle(Color(hex: 0xFF2D55))
                         .frame(width: 40, height: 40)
-                        .background(
-                            Circle()
-                                .fill(palette.iconWellFill)
-                        )
+                        .background(HarmonyPanelChrome.toolbarRoundGlass(diameter: 40, colorScheme: colorScheme))
 
                     Text(title)
                         .font(.system(size: 17))
@@ -146,7 +167,7 @@ struct ThemeSelectionView: View {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 22, weight: .medium))
                         .foregroundStyle(
-                            pendingSelection == value ? Color(hex: 0xBA0034) : Color.clear
+                            pendingSelection == value ? Color(hex: 0xE51245) : Color.clear
                         )
                         .accessibilityHidden(true)
                 }
@@ -163,8 +184,8 @@ struct ThemeSelectionView: View {
         }
         .buttonStyle(ThemeOptionRowButtonStyle(
             pressedFill: colorScheme == .dark
-                ? Color.white.opacity(0.06)
-                : Color(hex: 0xF4F3F8)
+                ? Color.white.opacity(0.08)
+                : Color.primary.opacity(0.06)
         ))
         .accessibilityAddTraits(pendingSelection == value ? .isSelected : [])
     }
@@ -182,9 +203,13 @@ struct ThemeSelectionView: View {
                     .foregroundStyle(Color.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
-                    .background(Color(hex: 0xBA0034))
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    .shadow(color: Color.black.opacity(0.12), radius: 8, x: 0, y: 4)
+                    .background(HarmonyPanelChrome.primaryCTAFill(cornerRadius: 16, colorScheme: colorScheme))
+                    .shadow(
+                        color: Color.black.opacity(colorScheme == .dark ? 0.35 : 0.14),
+                        radius: 10,
+                        x: 0,
+                        y: 4
+                    )
             }
             .buttonStyle(ThemeApplyButtonStyle())
             .padding(.horizontal, 20)
@@ -192,7 +217,7 @@ struct ThemeSelectionView: View {
             .padding(.bottom, 16)
         }
         .frame(maxWidth: .infinity)
-        .background(.regularMaterial.opacity(colorScheme == .dark ? 0.92 : 0.94))
+        .background(.ultraThinMaterial)
         .overlay(alignment: .top) {
             Rectangle()
                 .fill(palette.topBarDivider)
@@ -212,27 +237,6 @@ private enum ThemeSelectionPalette {
     case light
     case dark
 
-    var pageBackground: Color {
-        switch self {
-        case .light: return Color(hex: 0xFAF9FE)
-        case .dark: return Color(hex: 0x131315)
-        }
-    }
-
-    var cardFill: Color {
-        switch self {
-        case .light: return Color(hex: 0xFFFFFF)
-        case .dark: return Color(hex: 0x1E1E23)
-        }
-    }
-
-    var iconWellFill: Color {
-        switch self {
-        case .light: return Color(hex: 0xEEEDF3)
-        case .dark: return Color(hex: 0x2A2A30)
-        }
-    }
-
     var onSurface: Color {
         switch self {
         case .light: return Color(hex: 0x1A1B1F)
@@ -244,13 +248,6 @@ private enum ThemeSelectionPalette {
         switch self {
         case .light: return Color(hex: 0x5D3F40)
         case .dark: return Color(hex: 0xCAB8B9)
-        }
-    }
-
-    var topBarTitle: Color {
-        switch self {
-        case .light: return Color(hex: 0x111827)
-        case .dark: return Color(hex: 0xF9FAFB)
         }
     }
 

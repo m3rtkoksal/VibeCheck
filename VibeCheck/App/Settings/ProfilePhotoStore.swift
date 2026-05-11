@@ -37,5 +37,24 @@ enum ProfilePhotoStore {
             try FileManager.default.removeItem(at: u)
         }
     }
+
+    /// Firebase Storage’a yüklemek için: en uzun kenarı `maxDimension` ile sınırlı JPEG (discoverability’de küçük yüz foto).
+    static func jpegDataForPublicDiscoverability(maxDimension: CGFloat = 512, quality: CGFloat = 0.82) -> Data? {
+        guard let image = load() else { return nil }
+        let w = image.size.width
+        let h = image.size.height
+        let longest = max(w, h)
+        guard longest > 1 else { return nil }
+        let scale = min(1, maxDimension / longest)
+        guard scale <= 1, scale > 0 else {
+            return image.jpegData(compressionQuality: quality)
+        }
+        let newSize = CGSize(width: floor(w * scale), height: floor(h * scale))
+        let renderer = UIGraphicsImageRenderer(size: newSize)
+        let resized = renderer.image { ctx in
+            image.draw(in: CGRect(origin: .zero, size: newSize))
+        }
+        return resized.jpegData(compressionQuality: quality)
+    }
 }
 

@@ -20,7 +20,7 @@ struct SettingsTabView: View {
 
     var body: some View {
         ZStack {
-            palette.pageBackground
+            Color.clear
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
@@ -107,8 +107,15 @@ struct SettingsTabView: View {
                     .padding(.horizontal, 24)
                     .padding(.vertical, 11)
                     .background(
-                        Capsule()
-                            .fill(palette.editButtonCapsuleFill)
+                        Capsule(style: .continuous)
+                            .fill(Material.thin)
+                            .overlay {
+                                Capsule(style: .continuous)
+                                    .strokeBorder(
+                                        Color.primary.opacity(colorScheme == .dark ? 0.22 : 0.08),
+                                        lineWidth: 1
+                                    )
+                            }
                     )
             }
             .buttonStyle(SettingsCardPressStyle(scale: 0.96))
@@ -160,9 +167,10 @@ struct SettingsTabView: View {
                 Circle()
                     .fill(Color.white)
                     .overlay {
-                        Text(profileInitialsDerived)
-                            .font(.system(size: 42, weight: .bold))
-                            .foregroundStyle(palette.onSurfaceMuted)
+                        Image(systemName: "person.fill")
+                            .font(.system(size: 48, weight: .medium))
+                            .foregroundStyle(palette.onSurfaceMuted.opacity(0.55))
+                            .symbolRenderingMode(.hierarchical)
                     }
             }
         }
@@ -173,25 +181,6 @@ struct SettingsTabView: View {
         .onChange(of: photoSaved) { _, _ in
             avatarUIImage = photoSaved ? ProfilePhotoStore.load() : nil
         }
-    }
-
-    private var profileInitialsDerived: String {
-        if !trimmedNickname.isEmpty {
-            let parts = trimmedNickname.split(whereSeparator: { $0.isWhitespace })
-            let letters =
-                parts
-                .prefix(2)
-                .map { String($0.prefix(1)).uppercased() }
-                .joined()
-            return letters.isEmpty ? "?" : letters
-        }
-        if let e = Auth.auth().currentUser?.email, let c = e.first {
-            return String(c).uppercased()
-        }
-        if let p = Auth.auth().currentUser?.phoneNumber?.filter(\.isNumber), let c = p.last {
-            return String(c)
-        }
-        return "?"
     }
 
     private var profileSubtitleLine: String? {
@@ -273,7 +262,18 @@ struct SettingsTabView: View {
                 .frame(width: 56, height: 56)
                 .background(
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(Color(hex: 0xFF2D55).opacity(colorScheme == .dark ? 0.18 : 0.11))
+                        .fill(Material.ultraThinMaterial)
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(Color(hex: 0xFF2D55).opacity(colorScheme == .dark ? 0.14 : 0.1))
+                        }
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .strokeBorder(
+                                    Color.primary.opacity(colorScheme == .dark ? 0.2 : 0.08),
+                                    lineWidth: 1
+                                )
+                        }
                 )
 
             Text(title)
@@ -295,23 +295,20 @@ struct SettingsTabView: View {
         }
         .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(palette.cardFill)
-                .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.35 : 0.06), radius: 12, x: 0, y: 6)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(palette.cardStroke, lineWidth: 1)
+            HarmonyPanelChrome.panelBackdrop(cornerRadius: 24, colorScheme: colorScheme)
+                .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme), radius: 12, x: 0, y: 6)
         )
         .foregroundStyle(Color.primary)
     }
 
     private var chevronBadge: some View {
-        Image(systemName: "chevron.right")
-            .font(.system(size: 15, weight: .semibold))
-            .foregroundStyle(palette.onSurfaceMuted)
-            .frame(width: 32, height: 32)
-            .background(Circle().fill(palette.iconWellFill))
+        ZStack {
+            HarmonyPanelChrome.chevronCueCircle(diameter: 32, colorScheme: colorScheme)
+            Image(systemName: "chevron.right")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(palette.onSurfaceMuted)
+        }
+        .frame(width: 32, height: 32)
     }
 
     private var signOutCard: some View {
@@ -322,7 +319,18 @@ struct SettingsTabView: View {
                 .frame(width: 56, height: 56)
                 .background(
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(Color(hex: 0xFFDAD6).opacity(colorScheme == .dark ? 0.35 : 0.62))
+                        .fill(Material.ultraThinMaterial)
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(Color(hex: 0xBA1A1A).opacity(colorScheme == .dark ? 0.18 : 0.08))
+                        }
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .strokeBorder(
+                                    Color(hex: 0xBA1A1A).opacity(colorScheme == .dark ? 0.35 : 0.28),
+                                    lineWidth: 1
+                                )
+                        }
                 )
 
             Text("Çıkış Yap")
@@ -333,13 +341,12 @@ struct SettingsTabView: View {
         }
         .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(palette.cardFill)
-                .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.35 : 0.06), radius: 12, x: 0, y: 6)
+            HarmonyPanelChrome.panelBackdrop(cornerRadius: 24, colorScheme: colorScheme)
+                .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme), radius: 12, x: 0, y: 6)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(Color(hex: 0xFFDAD6).opacity(colorScheme == .dark ? 0.45 : 0.85), lineWidth: 1)
+                .stroke(Color(hex: 0xFFDAD6).opacity(colorScheme == .dark ? 0.42 : 0.55), lineWidth: 1)
         )
         .foregroundStyle(Color.primary)
     }
@@ -427,34 +434,6 @@ private enum SettingsScreenPalette {
         switch self {
         case .light: return Color(hex: 0x5D3F40)
         case .dark: return Color(hex: 0xCAB8B9)
-        }
-    }
-
-    var cardFill: Color {
-        switch self {
-        case .light: return Color(hex: 0xFFFFFF)
-        case .dark: return Color(hex: 0x1E1E23)
-        }
-    }
-
-    var cardStroke: Color {
-        switch self {
-        case .light: return Color(hex: 0xF4F3F8)
-        case .dark: return Color.white.opacity(0.08)
-        }
-    }
-
-    var iconWellFill: Color {
-        switch self {
-        case .light: return Color(hex: 0xF4F3F8)
-        case .dark: return Color(hex: 0x2A2A30)
-        }
-    }
-
-    var editButtonCapsuleFill: Color {
-        switch self {
-        case .light: return Color(hex: 0xE3E2E7)
-        case .dark: return Color(hex: 0x35343A)
         }
     }
 }

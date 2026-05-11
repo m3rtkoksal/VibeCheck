@@ -1,6 +1,7 @@
 import Foundation
 import FirebaseAuth
 import FirebaseFirestore
+import FirebaseStorage
 
 @MainActor
 final class SettingsDetailViewModel: ObservableObject {
@@ -57,8 +58,8 @@ final class SettingsDetailViewModel: ObservableObject {
         }
     }
 
-    /// Compatibility ekranında telefon / X ile arama için minimal bir index.
-    /// Yazılan alanlar: `vibeCode`, `phoneE164`, `xUsernameLower`.
+    /// Compatibility ekranında telefon / X / vibeCode ile arama ve Geçmiş avatarı için minimal index.
+    /// Yazılan alanlar: `vibeCode`, `phoneE164`, `xUsernameLower`, `fullName`, `photoPublicURL` (Storage ile).
     func syncDiscoverabilityIndex() async {
         guard let user = Auth.auth().currentUser else { return }
 
@@ -91,6 +92,8 @@ final class SettingsDetailViewModel: ObservableObject {
         } else {
             data["xUsernameLower"] = FieldValue.delete()
         }
+
+        await mergePublicDiscoverabilityAvatar(for: user.uid, into: &data)
 
         do {
             try await withTimeout(seconds: 4) {
@@ -218,6 +221,60 @@ final class SettingsDetailViewModel: ObservableObject {
         static let xDiscoverable = "discoverability.xDiscoverable"
         static let xVerified = "discoverability.xVerified"
         static let fullName = "discoverability.fullName"
+        static let profilePhotoSaved = "profile.photoSaved"
+    }
+
+    private static let publicAvatarStoragePathFormat = "discoverability_public_avatars/%@.jpg"
+
+    /// Küçük public avatar: Storage + `photoPublicURL` (Geçmiş’te AsyncImage için).
+    private func mergePublicDiscoverabilityAvatar(for uid: String, into data: inout [String: Any]) async {
+        let saved = defaults.bool(forKey: Keys.profilePhotoSaved)
+        let path = String(format: Self.publicAvatarStoragePathFormat, uid)
+        let ref = Storage.storage().reference(withPath: path)
+
+        if saved {
+            guard let jpeg = ProfilePhotoStore.jpegDataForPublicDiscoverability() else { return }
+            do {
+                let meta = StorageMetadata()
+                meta.contentType = "image/jpeg"
+                _ = try await ref.putDataAsync(jpeg, metadata: meta)
+                let url = try await firebaseStorageDownloadURL(ref)
+                data["photoPublicURL"] = url.absoluteString
+            } catch {
+                NSLog("Discoverability avatar yükleme hatası: %@", String(describing: error))
+            }
+        } else {
+            data["photoPublicURL"] = FieldValue.delete()
+            await firebaseStorageDeleteIgnoringError(ref)
+        }
+    }
+
+    private func firebaseStorageDownloadURL(_ ref: StorageReference) async throws -> URL {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<URL, Error>) in
+            ref.downloadURL { url, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                guard let url else {
+                    continuation.resume(throwing: NSError(
+                        domain: "FirebaseStorage",
+                        code: -1,
+                        userInfo: [NSLocalizedDescriptionKey: "Boş indirme URL’si."]
+                    ))
+                    return
+                }
+                continuation.resume(returning: url)
+            }
+        }
+    }
+
+    private func firebaseStorageDeleteIgnoringError(_ ref: StorageReference) async {
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            ref.delete { _ in
+                continuation.resume()
+            }
+        }
     }
 
     private func handleIndexSyncError(_ error: Error) {

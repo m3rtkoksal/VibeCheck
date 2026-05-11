@@ -13,153 +13,68 @@ struct PrivateNoteView: View {
     @State private var promptCopied = false
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     private let maxLength = 10000
 
     var body: some View {
         ZStack {
-            Color.clear
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    isEditorFocused = false
-                }
+            MeshAuroraBackgroundView()
+                .ignoresSafeArea()
 
-            VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Soru \(totalQuestions) / \(totalQuestions) Son Soru")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(topSubtitleColor)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    progressHeader
 
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            Capsule()
-                                .fill(Color.secondary.opacity(0.15))
-                            Capsule()
-                                .fill(Color(hex: 0xFF2D55))
-                                .frame(width: geo.size.width)
-                        }
-                    }
-                    .frame(height: 8)
-                }
-
-                Text("AI karakter özetini buraya yapıştır.")
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundStyle(topTitleColor)
-                    .padding(.top, 8)
-
-                Text(
-                    "Aşağıdaki promptu kopyalayıp ChatGPT'ye gönder. "
-                    + "Gelen karakter analizini bu alana yapıştır."
-                )
-                .font(.system(size: 15))
-                .foregroundStyle(topSubtitleColor)
-
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Hazır Prompt")
-                        .font(.system(size: 14, weight: .semibold))
+                    Text("AI karakter özetini buraya yapıştır.")
+                        .font(.system(size: 28, weight: .bold))
                         .foregroundStyle(.primary)
+                        .padding(.top, 8)
 
-                    Text("Promptu kopyala, dışarıda çalıştır, cevabı aşağıya yapıştır.")
-                        .font(.system(size: 13))
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.leading)
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
+                    Text(
+                        "Aşağıdaki promptu kopyalayıp ChatGPT'ye gönder. "
+                            + "Gelen karakter analizini bu alana yapıştır."
+                    )
+                    .font(.system(size: 15))
+                    .foregroundStyle(.secondary)
 
-                    Button {
-                        copyPromptTemplate()
-                    } label: {
-                        HStack(spacing: 8) {
-                            Image(systemName: "doc.on.doc")
-                            Text(promptCopied ? "Kopyalandı" : "Promptu Kopyala")
-                                .fontWeight(.semibold)
-                        }
-                        .font(.system(size: 15))
-                        .foregroundStyle(Color(hex: 0xFF2D55))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 44)
-                        .background(Color(hex: 0xFF2D55).opacity(0.06))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .stroke(Color(hex: 0xFF2D55).opacity(0.55), lineWidth: 1)
+                    promptCard
+
+                    editorCard
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .padding(.bottom, 110)
+            }
+            .scrollDismissesKeyboard(.interactively)
+            .background(Color.clear)
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .toolbarBackground(Color.clear, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(Color.primary)
+                        .frame(width: 36, height: 36)
+                        .background(
+                            HarmonyPanelChrome.toolbarBackGlass(
+                                diameter: 36,
+                                colorScheme: colorScheme,
+                                reduceTransparency: reduceTransparency
+                            )
                         )
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    }
-                    .buttonStyle(.plain)
                 }
-                .padding(14)
-                .background(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .fill(Color(.systemBackground))
-                        .shadow(color: Color.black.opacity(0.03), radius: 12, x: 0, y: 6)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(Color(.separator).opacity(0.25), lineWidth: 1)
-                )
-
-                VStack(alignment: .leading, spacing: 10) {
-                    TextEditor(text: $draft)
-                        .focused($isEditorFocused)
-                        .scrollContentBackground(.hidden)
-                        .background(Color.clear)
-                        .font(.system(size: 16))
-                        .frame(minHeight: 180, maxHeight: .infinity)
-
-                    HStack(spacing: 12) {
-                        Button {
-                            isEditorFocused = false
-                            speech.toggleRecording(currentText: draft, maxLength: maxLength)
-                        } label: {
-                            Image(systemName: speech.isRecording ? "stop.circle.fill" : "mic.fill")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundStyle(speech.isRecording ? Color(hex: 0xFF2D55) : .secondary)
-                        }
-                        .buttonStyle(.plain)
-
-                        Button {
-                            isEditorFocused = false
-                            showIdeaPicker = true
-                        } label: {
-                            Image(systemName: "lightbulb")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundStyle(.secondary)
-                        }
-                        .buttonStyle(.plain)
-
-                        Spacer()
-
-                        Text("\(draft.count) / \(maxLength)")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .padding(14)
-                .background(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .fill(Color(.systemBackground))
-                        .shadow(color: Color.black.opacity(0.03), radius: 12, x: 0, y: 6)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(Color(.separator).opacity(0.25), lineWidth: 1)
-                )
-
-                Spacer(minLength: 0)
+                .buttonStyle(.plain)
+                .accessibilityLabel("Geri")
+            }
+            ToolbarItem(placement: .principal) {
+                noteToolbarTitle
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 8)
-        .scrollDismissesKeyboard(.interactively)
-        .navigationTitle("VibeCheck")
-        .navigationBarTitleDisplayMode(.inline)
-        .background(
-            LinearGradient(
-                colors: backgroundGradientColors,
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-        )
         .safeAreaInset(edge: .bottom) {
             Button {
                 note = draft.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -174,10 +89,10 @@ struct PrivateNoteView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .background(Color.pink)
                 .foregroundStyle(.white)
-                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .background(HarmonyPanelChrome.primaryCTAFill(cornerRadius: 14, colorScheme: colorScheme))
             }
+            .buttonStyle(.plain)
             .disabled(
                 note.trimmingCharacters(in: .whitespacesAndNewlines)
                     == draft.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -227,32 +142,133 @@ struct PrivateNoteView: View {
         }
     }
 
+    private var noteToolbarTitle: some View {
+        let dark = colorScheme == .dark
+        return Text("VibeCheck")
+            .font(.system(size: 20, weight: .heavy, design: .default))
+            .tracking(-0.6)
+            .foregroundStyle(Color(hex: 0xE51245))
+            .shadow(color: dark ? Color.black.opacity(0.55) : Color.black.opacity(0.22), radius: 0, x: 0, y: 1)
+            .shadow(color: dark ? Color.black.opacity(0.35) : Color.black.opacity(0.08), radius: 2, x: 0, y: 0)
+            .shadow(color: dark ? Color.white.opacity(0.12) : Color.clear, radius: 1, x: 0, y: -0.5)
+    }
+
+    private var progressHeader: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Soru \(totalQuestions) / \(totalQuestions) Son Soru")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.secondary)
+
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.08))
+                    Capsule()
+                        .fill(Color(hex: 0xFF2D55))
+                        .frame(width: geo.size.width)
+                }
+            }
+            .frame(height: 8)
+            .padding(.horizontal, 2)
+        }
+        .padding(14)
+        .background(
+            HarmonyPanelChrome.panelBackdrop(cornerRadius: 16, colorScheme: colorScheme)
+                .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme), radius: 10, x: 0, y: 4)
+        )
+    }
+
+    private var promptCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Hazır Prompt")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(.primary)
+
+            Text("Promptu kopyala, dışarıda çalıştır, cevabı aşağıya yapıştır.")
+                .font(.system(size: 13))
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.leading)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Button {
+                copyPromptTemplate()
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "doc.on.doc")
+                    Text(promptCopied ? "Kopyalandı" : "Promptu Kopyala")
+                        .fontWeight(.semibold)
+                }
+                .font(.system(size: 15))
+                .foregroundStyle(Color(hex: 0xFF2D55))
+                .frame(maxWidth: .infinity)
+                .frame(height: 44)
+                .background(
+                    HarmonyPanelChrome.secondaryTintedButtonBackground(
+                        cornerRadius: 12,
+                        colorScheme: colorScheme
+                    )
+                )
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(14)
+        .background(
+            HarmonyPanelChrome.panelBackdrop(cornerRadius: 18, colorScheme: colorScheme)
+                .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme), radius: 11, x: 0, y: 5)
+        )
+    }
+
+    private var editorCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            TextEditor(text: $draft)
+                .focused($isEditorFocused)
+                .scrollContentBackground(.hidden)
+                .background(Color.clear)
+                .font(.system(size: 16))
+                .frame(minHeight: 180, maxHeight: .infinity)
+
+            HStack(spacing: 12) {
+                Button {
+                    isEditorFocused = false
+                    speech.toggleRecording(currentText: draft, maxLength: maxLength)
+                } label: {
+                    Image(systemName: speech.isRecording ? "stop.circle.fill" : "mic.fill")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(speech.isRecording ? Color(hex: 0xFF2D55) : .secondary)
+                        .frame(width: 42, height: 42)
+                        .background(HarmonyPanelChrome.toolbarRoundGlass(diameter: 42, colorScheme: colorScheme))
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    isEditorFocused = false
+                    showIdeaPicker = true
+                } label: {
+                    Image(systemName: "lightbulb")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 42, height: 42)
+                        .background(HarmonyPanelChrome.toolbarRoundGlass(diameter: 42, colorScheme: colorScheme))
+                }
+                .buttonStyle(.plain)
+
+                Spacer()
+
+                Text("\(draft.count) / \(maxLength)")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(14)
+        .background(
+            HarmonyPanelChrome.panelBackdrop(cornerRadius: 18, colorScheme: colorScheme)
+                .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme), radius: 11, x: 0, y: 5)
+        )
+    }
+
     private var totalQuestions: Int {
         ProfileCategory.allCases.count + 1
-    }
-
-    private var topTitleColor: Color {
-        colorScheme == .dark ? Color.white.opacity(0.96) : .primary
-    }
-
-    private var topSubtitleColor: Color {
-        colorScheme == .dark ? Color.white.opacity(0.72) : .secondary
-    }
-
-    private var backgroundGradientColors: [Color] {
-        if colorScheme == .dark {
-            return [
-                Color(hex: 0x0A0B12),
-                Color(hex: 0x121423),
-                Color(hex: 0x1A1222),
-            ]
-        } else {
-            return [
-                Color(hex: 0xFFF6F7),
-                Color(hex: 0xF3F6FF),
-                Color(hex: 0xFFFFFF),
-            ]
-        }
     }
 
     private var noteIdeas: [(title: String, seed: String)] {

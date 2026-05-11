@@ -1,7 +1,7 @@
 import SwiftUI
 import FirebaseAuth
 
-/// Ayarlar > Abonelik — mesh arka plan, gradient plan kartı, cam (glass) Vibe Plus kutuları (Stitch v2).
+/// Ayarlar > Abonelik — Aurora mesh, gradient plan kartı, Harmony cam Vibe Plus kutuları.
 struct SubscriptionManagementView: View {
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("subscription.notifyPlusLaunch") private var notifyPlusLaunch = false
@@ -33,14 +33,15 @@ struct SubscriptionManagementView: View {
             .padding(.bottom, 48)
         }
         .scrollDismissesKeyboard(.interactively)
+        .background(Color.clear)
         .background(
-            MeshSubscriptionBackground(style: palette)
+            MeshAuroraBackgroundView()
                 .ignoresSafeArea()
         )
         .navigationTitle("Abonelik Yönetimi")
         .navigationBarTitleDisplayMode(.large)
-        .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
-        .tint(palette.toolbarTint)
+        .toolbarBackground(Color.clear, for: .navigationBar)
+        .tint(Color(hex: 0xE51245))
         .overlay(alignment: .top) {
             if notifyFeedback {
                 notifyToast
@@ -151,6 +152,13 @@ struct SubscriptionManagementView: View {
             .font(.system(size: 17))
             .foregroundStyle(palette.onSurfaceVariant.opacity(0.88))
             .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                HarmonyPanelChrome.panelBackdrop(cornerRadius: 20, colorScheme: colorScheme)
+                    .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme), radius: 10, x: 0, y: 4)
+            )
     }
 
     /// `premium-card-bg` + gölgeli gradient kartı
@@ -287,25 +295,21 @@ struct SubscriptionManagementView: View {
                 plusGlassCell(
                     icon: "sparkles",
                     title: "Sınırsız AI analizi",
-                    iconRoundedFill: palette.secondaryAccent.opacity(0.1),
                     iconForeground: palette.secondaryAccent
                 )
                 plusGlassCell(
                     icon: "doc.text.fill",
                     title: "Detaylı karakter raporları",
-                    iconRoundedFill: palette.tertiaryAccent.opacity(0.1),
                     iconForeground: palette.tertiaryAccent
                 )
                 plusGlassCell(
                     icon: "xmark.rectangle.fill",
                     title: "Reklamsız deneyim",
-                    iconRoundedFill: palette.neutralFeatureIconWell,
                     iconForeground: palette.onSurfaceVariant
                 )
                 plusGlassCell(
                     icon: "headphones.circle.fill",
                     title: "Öncelikli destek",
-                    iconRoundedFill: Color(hex: 0xFF2D55).opacity(0.1),
                     iconForeground: Color(hex: 0xFF2D55)
                 )
             }
@@ -328,19 +332,12 @@ struct SubscriptionManagementView: View {
                 .foregroundStyle(Color.white)
                 .frame(maxWidth: .infinity)
                 .frame(minHeight: 60)
-                .background(
-                    LinearGradient(
-                        colors: palette.notifyButtonGradient,
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                )
+                .background(HarmonyPanelChrome.primaryCTAFill(cornerRadius: 16, colorScheme: colorScheme))
                 .shadow(
-                    color: Color(hex: 0xFF2D55).opacity(0.4),
-                    radius: 16,
+                    color: Color.black.opacity(colorScheme == .dark ? 0.35 : 0.14),
+                    radius: 12,
                     x: 0,
-                    y: 8
+                    y: 6
                 )
             }
             .buttonStyle(ScaleOnPressStyle(scale: 0.98))
@@ -352,7 +349,6 @@ struct SubscriptionManagementView: View {
     private func plusGlassCell(
         icon: String,
         title: String,
-        iconRoundedFill: Color,
         iconForeground: Color
     ) -> some View {
         VStack(alignment: .leading, spacing: SubscriptionSpacing.md) {
@@ -361,8 +357,11 @@ struct SubscriptionManagementView: View {
                 .foregroundStyle(iconForeground)
                 .frame(width: 48, height: 48)
                 .background(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(iconRoundedFill)
+                    HarmonyPanelChrome.secondaryTintedButtonBackground(
+                        cornerRadius: 12,
+                        colorScheme: colorScheme,
+                        tint: iconForeground
+                    )
                 )
 
             Text(title)
@@ -374,19 +373,10 @@ struct SubscriptionManagementView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(20)
-        .background(glassTileBackground())
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(palette.glassBorder, lineWidth: 1)
+        .background(
+            HarmonyPanelChrome.panelBackdrop(cornerRadius: 16, colorScheme: colorScheme)
+                .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme), radius: 12, x: 0, y: 5)
         )
-        .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.25 : 0.05), radius: 14, x: 0, y: 6)
-    }
-
-    @ViewBuilder
-    private func glassTileBackground() -> some View {
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .fill(palette.glassBase)
     }
 
     private var vibePlusHeaderGradient: LinearGradient {
@@ -408,38 +398,6 @@ struct SubscriptionManagementView: View {
             .padding(.vertical, 12)
             .background(Capsule().fill(Color(hex: 0x1A1B1F).opacity(0.92)))
             .shadow(color: Color.black.opacity(0.18), radius: 12, y: 6)
-    }
-}
-
-// MARK: - Mesh arka plan
-
-private struct MeshSubscriptionBackground: View {
-    let style: SubscriptionPalette
-
-    var body: some View {
-        ZStack {
-            style.meshBaseFill
-
-            RadialGradient(
-                colors: [
-                    Color(hex: 0xFF2D55).opacity(style.meshPinkOpacity),
-                    Color.clear,
-                ],
-                center: .topLeading,
-                startRadius: 0,
-                endRadius: 340
-            )
-
-            RadialGradient(
-                colors: [
-                    Color(red: 102 / 255, green: 100 / 255, blue: 228 / 255).opacity(style.meshPurpleOpacity),
-                    Color.clear,
-                ],
-                center: .bottomTrailing,
-                startRadius: 0,
-                endRadius: 380
-            )
-        }
     }
 }
 
@@ -468,35 +426,6 @@ private enum SubscriptionPalette {
     case light
     case dark
 
-    /// Mesh taban (#faf9fe / koyu)
-    var meshBaseFill: Color {
-        switch self {
-        case .light: return Color(hex: 0xFAF9FE)
-        case .dark: return Color(hex: 0x131315)
-        }
-    }
-
-    var meshPinkOpacity: Double {
-        switch self {
-        case .light: return 0.15
-        case .dark: return 0.12
-        }
-    }
-
-    var meshPurpleOpacity: Double {
-        switch self {
-        case .light: return 0.10
-        case .dark: return 0.08
-        }
-    }
-
-    var toolbarTint: Color {
-        switch self {
-        case .light: return Color(hex: 0xBA0034)
-        case .dark: return Color(hex: 0xBE0036)
-        }
-    }
-
     var onSurface: Color {
         switch self {
         case .light: return Color(hex: 0x1A1B1F)
@@ -524,36 +453,6 @@ private enum SubscriptionPalette {
                 Color(hex: 0xFF2D55).opacity(0.96),
                 Color(hex: 0x8F0029),
             ]
-        }
-    }
-
-    /// CTA degrade (orta ton #E0264A — hover’a yakın)
-    var notifyButtonGradient: [Color] {
-        [
-            Color(hex: 0xFF2D55),
-            Color(hex: 0xE0264A),
-        ]
-    }
-
-    /// Cam panel zemini (`glass-panel`)
-    var glassBase: Color {
-        switch self {
-        case .light: return Color.white.opacity(0.68)
-        case .dark: return Color(hex: 0x2F3034).opacity(0.72)
-        }
-    }
-
-    var glassBorder: Color {
-        switch self {
-        case .light: return Color.white.opacity(0.5)
-        case .dark: return Color.white.opacity(0.1)
-        }
-    }
-
-    var neutralFeatureIconWell: Color {
-        switch self {
-        case .light: return Color(hex: 0xE3E2E7)
-        case .dark: return Color(hex: 0x353437)
         }
     }
 

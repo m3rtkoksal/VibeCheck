@@ -1,9 +1,74 @@
 import SwiftUI
 import UIKit
 
+// MARK: - Cam yüzey (detay ekranı)
+
+private struct ResultGlassCardModifier: ViewModifier {
+    let cornerRadius: CGFloat
+    let shadowRadius: CGFloat
+    let shadowY: CGFloat
+
+    @Environment(\.colorScheme) private var colorScheme
+
+    func body(content: Content) -> some View {
+        content.background(
+            HarmonyPanelChrome.panelBackdrop(cornerRadius: cornerRadius, colorScheme: colorScheme)
+                .shadow(
+                    color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme),
+                    radius: shadowRadius,
+                    x: 0,
+                    y: shadowY
+                )
+        )
+    }
+}
+
+/// Uyum özeti — üstte hafif pembe “hero” wash.
+private struct ResultHeroGlassModifier: ViewModifier {
+    @Environment(\.colorScheme) private var colorScheme
+
+    func body(content: Content) -> some View {
+        content.background {
+            ZStack {
+                HarmonyPanelChrome.panelBackdrop(cornerRadius: 22, colorScheme: colorScheme)
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color(hex: 0xFF2D55).opacity(colorScheme == .dark ? 0.16 : 0.1),
+                                Color(hex: 0x7C3AED).opacity(colorScheme == .dark ? 0.06 : 0.04),
+                                Color.clear,
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            }
+            .shadow(
+                color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme),
+                radius: 14,
+                x: 0,
+                y: 8
+            )
+        }
+    }
+}
+
+private extension View {
+    func resultGlassCard(cornerRadius: CGFloat = 18, shadowRadius: CGFloat = 11, shadowY: CGFloat = 5) -> some View {
+        modifier(ResultGlassCardModifier(cornerRadius: cornerRadius, shadowRadius: shadowRadius, shadowY: shadowY))
+    }
+
+    func resultHeroGlass() -> some View {
+        modifier(ResultHeroGlassModifier())
+    }
+}
+
 struct CompatibilityAnalysisResultView: View {
     @StateObject private var vm: CompatibilityAnalysisResultViewModel
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @AppStorage("profile.photoSaved") private var photoSaved = false
 
     init(output: AIOnlyAnalysisOutput) {
@@ -11,72 +76,104 @@ struct CompatibilityAnalysisResultView: View {
     }
 
     var body: some View {
-        VStack(spacing: 10) {
-            topTabs
-
-            TabView(selection: $vm.selectedTab) {
-                uyumPage.tag(ResultTopTab.uyum)
-                buzkiranPage.tag(ResultTopTab.buzkiran)
-                ongoruPage.tag(ResultTopTab.ongoru)
-                degerlendirmePage.tag(ResultTopTab.degerlendirme)
-                puanimPage.tag(ResultTopTab.puanim)
+        resultMainStack
+            .safeAreaInset(edge: .bottom) {
+                saveRatingBottomInset
             }
-            .tabViewStyle(.page(indexDisplayMode: .never))
-        }
-        .safeAreaInset(edge: .bottom) {
-            if vm.selectedTab == .degerlendirme, vm.canSaveRating {
-                Button {
-                    vm.saveRating()
-                } label: {
-                    Text("Puanı Kaydet")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(Color.pink)
-                        .foregroundStyle(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
+            .alert("Değerlendirme kaydedildi", isPresented: $vm.showSavedAlert) {
+                Button("Tamam", role: .cancel) {}
+            } message: {
+                Text("Puanın kaydedildi. Geçmiş ekranında uyum puanının yanında görebilirsin.")
+            }
+            .onAppear {
+                vm.loadAvatar(photoSaved: photoSaved)
+                vm.refreshReceivedRating()
+                IncomingCompatibilityRatingsNotifier.shared.markIncomingDetailOpened(docId: vm.output.incomingFirestoreDocId)
+            }
+            .onChange(of: photoSaved) { _, _ in
+                vm.loadAvatar(photoSaved: photoSaved)
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden(true)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(Color.primary)
+                            .frame(width: 36, height: 36)
+                            .background(
+                                HarmonyPanelChrome.toolbarBackGlass(
+                                    diameter: 36,
+                                    colorScheme: colorScheme,
+                                    reduceTransparency: reduceTransparency
+                                )
+                            )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Geri")
                 }
-                .buttonStyle(.plain)
-                .padding(.horizontal, 16)
-                .padding(.top, 10)
-                .padding(.bottom, 10)
-                .background(.ultraThinMaterial)
+                ToolbarItem(placement: .principal) {
+                    resultToolbarTitle
+                }
             }
-        }
-        .alert("Değerlendirme kaydedildi", isPresented: $vm.showSavedAlert) {
-            Button("Tamam", role: .cancel) {}
-        } message: {
-            Text("Puanın kaydedildi. Geçmiş ekranında uyum puanının yanında görebilirsin.")
-        }
-        .onAppear {
-            vm.loadAvatar(photoSaved: photoSaved)
-            vm.refreshReceivedRating()
-            IncomingCompatibilityRatingsNotifier.shared.markIncomingDetailOpened(docId: vm.output.incomingFirestoreDocId)
-        }
-        .onChange(of: photoSaved) { _, _ in
-            vm.loadAvatar(photoSaved: photoSaved)
-        }
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                Text("VibeCheck")
-                    .font(.system(size: 20, weight: .black, design: .default))
-                    .tracking(-0.6)
-                    .foregroundStyle(Color(hex: 0xFF2D55))
+            .toolbarBackground(Color.clear, for: .navigationBar)
+    }
+
+    private var resultMainStack: some View {
+        ZStack {
+            MeshAuroraBackgroundView()
+                .ignoresSafeArea()
+
+            VStack(spacing: 10) {
+                topTabs
+
+                TabView(selection: $vm.selectedTab) {
+                    uyumPage.tag(ResultTopTab.uyum)
+                    buzkiranPage.tag(ResultTopTab.buzkiran)
+                    ongoruPage.tag(ResultTopTab.ongoru)
+                    degerlendirmePage.tag(ResultTopTab.degerlendirme)
+                    puanimPage.tag(ResultTopTab.puanim)
+                }
+                .tabViewStyle(.page(indexDisplayMode: .never))
+                .background(Color.clear)
             }
+            .background(Color.clear)
         }
-        .background(
-            LinearGradient(
-                colors: [
-                    colorScheme == .dark ? Color(hex: 0x12131A) : Color(hex: 0xFFF6F7),
-                    colorScheme == .dark ? Color(hex: 0x171A24) : Color(hex: 0xF3F6FF),
-                    colorScheme == .dark ? Color(hex: 0x0D0E14) : Color.white,
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-        )
+    }
+
+    @ViewBuilder
+    private var saveRatingBottomInset: some View {
+        if vm.selectedTab == .degerlendirme, vm.canSaveRating {
+            Button {
+                vm.saveRating()
+            } label: {
+                Text("Puanı Kaydet")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(HarmonyPanelChrome.primaryCTAFill(cornerRadius: 14, colorScheme: colorScheme))
+                    .foregroundStyle(.white)
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 16)
+            .padding(.top, 10)
+            .padding(.bottom, 10)
+            .background(.ultraThinMaterial)
+        }
+    }
+
+    private var resultToolbarTitle: some View {
+        let dark = colorScheme == .dark
+        return Text("VibeCheck")
+            .font(.system(size: 20, weight: .heavy, design: .default))
+            .tracking(-0.6)
+            .foregroundStyle(Color(hex: 0xE51245))
+            .shadow(color: dark ? Color.black.opacity(0.55) : Color.black.opacity(0.22), radius: 0, x: 0, y: 1)
+            .shadow(color: dark ? Color.black.opacity(0.35) : Color.black.opacity(0.08), radius: 2, x: 0, y: 0)
+            .shadow(color: dark ? Color.white.opacity(0.12) : Color.clear, radius: 1, x: 0, y: -0.5)
     }
 
     private var topTabs: some View {
@@ -97,12 +194,19 @@ struct CompatibilityAnalysisResultView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 9)
                         .background(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .fill(
-                                    vm.selectedTab == tab ?
-                                        Color(hex: 0xFFE8EE) :
-                                        Color.clear
-                                )
+                            Group {
+                                if vm.selectedTab == tab {
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .fill(Color(hex: 0xFF2D55).opacity(colorScheme == .dark ? 0.22 : 0.14))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                                .strokeBorder(Color(hex: 0xFF2D55).opacity(0.35), lineWidth: 1)
+                                        )
+                                } else {
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .fill(Color.clear)
+                                }
+                            }
                         )
                 }
                 .buttonStyle(.plain)
@@ -110,13 +214,17 @@ struct CompatibilityAnalysisResultView: View {
         }
         .padding(4)
         .background(
-            RoundedRectangle(cornerRadius: 999, style: .continuous)
-                .fill(Color(.systemBackground).opacity(0.86))
-                .shadow(color: Color.black.opacity(0.04), radius: 10, x: 0, y: 4)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 999, style: .continuous)
-                        .stroke(Color.white.opacity(0.65), lineWidth: 1)
-                )
+            ZStack {
+                RoundedRectangle(cornerRadius: 999, style: .continuous)
+                    .fill(Material.thin)
+                RoundedRectangle(cornerRadius: 999, style: .continuous)
+                    .fill(Color.primary.opacity(colorScheme == .dark ? 0.08 : 0.04))
+            }
+            .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme), radius: 10, x: 0, y: 4)
+            .overlay(
+                RoundedRectangle(cornerRadius: 999, style: .continuous)
+                    .strokeBorder(Color.primary.opacity(colorScheme == .dark ? 0.2 : 0.1), lineWidth: 1)
+            )
         )
         .padding(.horizontal, 16)
         .padding(.top, 8)
@@ -154,15 +262,7 @@ struct CompatibilityAnalysisResultView: View {
                 }
                 .padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .fill(Color(.systemBackground))
-                        .shadow(color: Color.black.opacity(0.04), radius: 14, x: 0, y: 8)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .stroke(Color(.separator).opacity(0.25), lineWidth: 1)
-                )
+                .resultHeroGlass()
 
                 Text("Neden Uyumlusunuz?")
                     .font(.system(size: 22, weight: .bold))
@@ -297,11 +397,7 @@ struct CompatibilityAnalysisResultView: View {
                 }
                 .padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .fill(Color(.systemBackground))
-                        .shadow(color: Color.black.opacity(0.04), radius: 12, x: 0, y: 6)
-                )
+                .resultGlassCard(cornerRadius: 20, shadowRadius: 12, shadowY: 6)
             }
             .disabled(!vm.canSaveRating)
             .padding(.horizontal, 16)
@@ -382,11 +478,7 @@ struct CompatibilityAnalysisResultView: View {
                     }
                     .padding(16)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(
-                        RoundedRectangle(cornerRadius: 20, style: .continuous)
-                            .fill(Color(.systemBackground))
-                            .shadow(color: Color.black.opacity(0.04), radius: 12, x: 0, y: 6)
-                    )
+                    .resultGlassCard(cornerRadius: 20, shadowRadius: 12, shadowY: 6)
                 } else {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Henüz değerlendirme yok")
@@ -398,11 +490,7 @@ struct CompatibilityAnalysisResultView: View {
                     }
                     .padding(16)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(
-                        RoundedRectangle(cornerRadius: 20, style: .continuous)
-                            .fill(Color(.systemBackground))
-                            .shadow(color: Color.black.opacity(0.04), radius: 12, x: 0, y: 6)
-                    )
+                    .resultGlassCard(cornerRadius: 20, shadowRadius: 12, shadowY: 6)
                 }
             }
             .padding(.horizontal, 16)
@@ -413,27 +501,38 @@ struct CompatibilityAnalysisResultView: View {
     private var forecastProfilesRow: some View {
         HStack(spacing: 22) {
             VStack(spacing: 8) {
-                Circle()
-                    .fill(Color(.systemBackground))
-                    .overlay(
-                        Group {
-                            if let myAvatarUIImage = vm.myAvatarUIImage {
-                                Image(uiImage: myAvatarUIImage)
-                                    .resizable()
-                                    .scaledToFill()
-                            } else {
-                                Image(systemName: "person.fill")
-                                    .font(.system(size: 28, weight: .semibold))
-                                    .foregroundStyle(Color(hex: 0xFF2D55))
-                            }
+                ZStack {
+                    Circle()
+                        .fill(Material.thin)
+                    Group {
+                        if let myAvatarUIImage = vm.myAvatarUIImage {
+                            Image(uiImage: myAvatarUIImage)
+                                .resizable()
+                                .scaledToFill()
+                        } else {
+                            Image(systemName: "person.fill")
+                                .font(.system(size: 28, weight: .semibold))
+                                .foregroundStyle(Color(hex: 0xFF2D55))
                         }
-                    )
-                    .overlay(
-                        Circle().stroke(Color(.systemBackground), lineWidth: 4)
-                    )
-                    .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 4)
-                    .frame(width: 78, height: 78)
-                    .clipShape(Circle())
+                    }
+                }
+                .overlay(
+                    Circle()
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(colorScheme == .dark ? 0.2 : 0.75),
+                                    Color.white.opacity(colorScheme == .dark ? 0.06 : 0.25),
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 3
+                        )
+                )
+                .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme).opacity(0.85), radius: 8, x: 0, y: 4)
+                .frame(width: 78, height: 78)
+                .clipShape(Circle())
                 Text("Sen")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.secondary)
@@ -441,26 +540,53 @@ struct CompatibilityAnalysisResultView: View {
 
             ZStack {
                 Circle()
-                    .fill(Color(hex: 0xFF2D55).opacity(0.14))
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Color(hex: 0xFF2D55).opacity(0.32),
+                                Color(hex: 0xFF2D55).opacity(0.06),
+                            ],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 28
+                        )
+                    )
                     .frame(width: 46, height: 46)
                 Image(systemName: "sparkles")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundStyle(Color(hex: 0xFF2D55))
             }
+            .overlay {
+                Circle()
+                    .strokeBorder(Color.white.opacity(colorScheme == .dark ? 0.12 : 0.35), lineWidth: 1)
+                    .frame(width: 46, height: 46)
+            }
 
             VStack(spacing: 8) {
-                Circle()
-                    .fill(Color(.systemBackground))
-                    .overlay(
-                        Image(systemName: "person.fill")
-                            .font(.system(size: 28, weight: .semibold))
-                            .foregroundStyle(Color(hex: 0x4C4ACA))
-                    )
-                    .overlay(
-                        Circle().stroke(Color(.systemBackground), lineWidth: 4)
-                    )
-                    .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 4)
-                    .frame(width: 78, height: 78)
+                ZStack {
+                    Circle()
+                        .fill(Material.thin)
+                    Image(systemName: "person.fill")
+                        .font(.system(size: 28, weight: .semibold))
+                        .foregroundStyle(Color(hex: 0x4C4ACA))
+                }
+                .overlay(
+                    Circle()
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(colorScheme == .dark ? 0.2 : 0.75),
+                                    Color.white.opacity(colorScheme == .dark ? 0.06 : 0.25),
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 3
+                        )
+                )
+                .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme).opacity(0.85), radius: 8, x: 0, y: 4)
+                .frame(width: 78, height: 78)
+                .clipShape(Circle())
                 Text(vm.partnerLabel)
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.secondary)
@@ -557,15 +683,7 @@ struct CompatibilityAnalysisResultView: View {
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color(.systemBackground))
-                .shadow(color: Color.black.opacity(0.03), radius: 10, x: 0, y: 5)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(Color(.separator).opacity(0.22), lineWidth: 1)
-        )
+        .resultGlassCard(cornerRadius: 17, shadowRadius: 10, shadowY: 4)
     }
 
     private func ongoruCard(item: ForecastCard) -> some View {
@@ -615,19 +733,10 @@ struct CompatibilityAnalysisResultView: View {
                     .foregroundStyle(.secondary)
             }
             .padding(12)
-            .background(Color(.secondarySystemBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background(HarmonyPanelChrome.insetWell(cornerRadius: 12, colorScheme: colorScheme))
         }
         .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(Color(.systemBackground))
-                .shadow(color: Color.black.opacity(0.04), radius: 14, x: 0, y: 8)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .stroke(Color(.separator).opacity(0.22), lineWidth: 1)
-        )
+        .resultGlassCard(cornerRadius: 21, shadowRadius: 13, shadowY: 6)
     }
 
     private func buzkiranCard(index: Int, item: BuzkiranCardItem) -> some View {
@@ -655,24 +764,15 @@ struct CompatibilityAnalysisResultView: View {
                 vm.copiedBuzkiranIndex = index
             } label: {
                 Image(systemName: vm.copiedBuzkiranIndex == index ? "checkmark" : "doc.on.doc")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(vm.copiedBuzkiranIndex == index ? Color(hex: 0xBA0034) : .secondary)
                     .frame(width: 36, height: 36)
-                    .background(Color(.secondarySystemBackground))
-                    .clipShape(Circle())
+                    .background(HarmonyPanelChrome.toolbarRoundGlass(diameter: 36, colorScheme: colorScheme))
             }
             .buttonStyle(.plain)
         }
         .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color(.systemBackground))
-                .shadow(color: Color.black.opacity(0.03), radius: 10, x: 0, y: 5)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(Color(.separator).opacity(0.2), lineWidth: 1)
-        )
+        .resultGlassCard(cornerRadius: 23, shadowRadius: 10, shadowY: 5)
     }
 
     private func sliderCard(
@@ -698,11 +798,7 @@ struct CompatibilityAnalysisResultView: View {
             .foregroundStyle(.secondary)
         }
         .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color(.systemBackground))
-                .shadow(color: Color.black.opacity(0.04), radius: 12, x: 0, y: 6)
-        )
+        .resultGlassCard(cornerRadius: 21, shadowRadius: 11, shadowY: 5)
     }
 
     private func binaryCard(title: String, value: Binding<Bool>) -> some View {
@@ -740,11 +836,7 @@ struct CompatibilityAnalysisResultView: View {
             }
         }
         .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color(.systemBackground))
-                .shadow(color: Color.black.opacity(0.04), radius: 12, x: 0, y: 6)
-        )
+        .resultGlassCard(cornerRadius: 21, shadowRadius: 11, shadowY: 5)
     }
 
     private func readonlySliderCard(
@@ -776,11 +868,7 @@ struct CompatibilityAnalysisResultView: View {
             .foregroundStyle(.secondary)
         }
         .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color(.systemBackground))
-                .shadow(color: Color.black.opacity(0.04), radius: 12, x: 0, y: 6)
-        )
+        .resultGlassCard(cornerRadius: 21, shadowRadius: 11, shadowY: 5)
     }
 
     private func readonlyBinaryCard(title: String, value: Bool) -> some View {
@@ -808,11 +896,7 @@ struct CompatibilityAnalysisResultView: View {
             }
         }
         .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color(.systemBackground))
-                .shadow(color: Color.black.opacity(0.04), radius: 12, x: 0, y: 6)
-        )
+        .resultGlassCard(cornerRadius: 21, shadowRadius: 11, shadowY: 5)
     }
 
 }

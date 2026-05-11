@@ -8,9 +8,12 @@
 
 /* Begin PBXBuildFile section */
 		08B6594CA4F1480A99399B37 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 9B2A98FC3D2864AAE07F41D8 /* Lottie */; };
+		E4E6D0012F91200000000001 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = E4E6D0022F91200000000002 /* FirebaseStorage */; };
 		1B726C39C3AFFB15E53DF09D /* VibeCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = D24B5A53254B86F7E561F60B /* VibeCode.swift */; };
 		1C961A38A4E435EDD09E86C3 /* LottieAnimationPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DA3D7AE702C22A7DEC23195 /* LottieAnimationPlayer.swift */; };
 		1E6E65E583C508F267047550 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8326276D0350537109A7451E /* MainTabView.swift */; };
+		A1B2C3D42F91000000000001 /* HarmonyPanelChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D42F91000000000002 /* HarmonyPanelChrome.swift */; };
+		E4E5F9012F90500000000001 /* MeshAuroraBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4E5F9012F90500000000002 /* MeshAuroraBackgroundView.swift */; };
 		1E9D61AF4C1F33EAE0376243 /* LoginViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40511D66B25E65DB21ACB283 /* LoginViewModel.swift */; };
 		1FE222C31CF7365560192D30 /* ProfilePhotoStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9957680C0FDCD4B5759272A5 /* ProfilePhotoStore.swift */; };
 		219236C5575F1CFC74CE659D /* SelfProfileInsightStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 440810A40846CA21F94F7E90 /* SelfProfileInsightStore.swift */; };
@@ -78,7 +81,8 @@
 		75F9334D08B9071620854DC9 /* VibeCheck.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VibeCheck.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7F753DD1447B3215E3680AAC /* VibeCheck.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = VibeCheck.entitlements; sourceTree = "<group>"; };
 		8326276D0350537109A7451E /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
-		87852604155E19059FC27C4D /* AppInfo.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = AppInfo.plist; sourceTree = "<group>"; };
+		E4E5F9012F90500000000002 /* MeshAuroraBackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshAuroraBackgroundView.swift; sourceTree = "<group>"; };
+		A1B2C3D42F91000000000002 /* HarmonyPanelChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HarmonyPanelChrome.swift; sourceTree = "<group>"; };
 		8B09809B8DEA1E61645B1CF0 /* QRImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRImage.swift; sourceTree = "<group>"; };
 		8D86609B4CA8F9578296C074 /* SettingsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTabView.swift; sourceTree = "<group>"; };
 		916C3392BA3BF9597A1FA246 /* PrivateNoteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivateNoteView.swift; sourceTree = "<group>"; };
@@ -126,6 +130,7 @@
 				93B3E0052F90410000000006 /* FirebaseMessaging in Frameworks */,
 				3CC1959CC0B5126BD8CA1343 /* FirebaseFunctions in Frameworks */,
 				520CF60576BA5FD37FAA7C8E /* FirebaseFirestore in Frameworks */,
+				E4E6D0012F91200000000001 /* FirebaseStorage in Frameworks */,
 				08B6594CA4F1480A99399B37 /* Lottie in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -146,8 +151,10 @@
 				5AB67F50A3F7DBF23354CB47 /* DiscoverabilityAuthService.swift */,
 				6EAF8DB2D79AB9E2B2A4F58F /* FirebaseAuthUIDelegateBridge.swift */,
 				0CE588AA5B7EF3B30BE543E2 /* FriendlyCallableError.swift */,
+				A1B2C3D42F91000000000002 /* HarmonyPanelChrome.swift */,
 				6DA3D7AE702C22A7DEC23195 /* LottieAnimationPlayer.swift */,
 				8326276D0350537109A7451E /* MainTabView.swift */,
+				E4E5F9012F90500000000002 /* MeshAuroraBackgroundView.swift */,
 				F71BC7E3BE688CDB57AF538D /* OnboardingView.swift */,
 				93B3E0032F90410000000002 /* IncomingCompatibilityRatingsInboxView.swift */,
 				93B3E0042F90410000000003 /* PushNotificationsCoordinator.swift */,
@@ -259,6 +266,7 @@
 				93B3E0062F90410000000007 /* FirebaseMessaging */,
 				69D44A4DC42EF5C9DC6CAE15 /* FirebaseFunctions */,
 				59B00B9B1238634A8BA097A7 /* FirebaseFirestore */,
+				E4E6D0022F91200000000002 /* FirebaseStorage */,
 				9B2A98FC3D2864AAE07F41D8 /* Lottie */,
 			);
 			productName = VibeCheck;
@@ -325,11 +333,13 @@
 				D6BB7C08321DC2595621E71D /* DiscoverabilityAuthService.swift in Sources */,
 				ECBAC503264D75FA68F4AEE1 /* FirebaseAuthUIDelegateBridge.swift in Sources */,
 				9440896AEA69777CCFA88371 /* FriendlyCallableError.swift in Sources */,
+				A1B2C3D42F91000000000001 /* HarmonyPanelChrome.swift in Sources */,
 				A7139F562F001A4CB7E89202 /* HelpSupportView.swift in Sources */,
 				43100C80A1BB8245F0832F40 /* LoginView.swift in Sources */,
 				1E9D61AF4C1F33EAE0376243 /* LoginViewModel.swift in Sources */,
 				1C961A38A4E435EDD09E86C3 /* LottieAnimationPlayer.swift in Sources */,
 				1E6E65E583C508F267047550 /* MainTabView.swift in Sources */,
+				E4E5F9012F90500000000001 /* MeshAuroraBackgroundView.swift in Sources */,
 				2A486D7B7FADEE6252C0727E /* OnboardingView.swift in Sources */,
 				C7BCA7DBB05CBFBFA18DF626 /* PrivateNoteView.swift in Sources */,
 				93B3E0022F90410000000001 /* PushNotificationsCoordinator.swift in Sources */,
@@ -598,6 +608,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = B6D5625DE8E6538CB3220157 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
+		};
+		E4E6D0022F91200000000002 /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B6D5625DE8E6538CB3220157 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
 		};
 		6096CD9753F3C7C531F2520D /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;

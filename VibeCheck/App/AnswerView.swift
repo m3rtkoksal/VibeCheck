@@ -9,6 +9,7 @@ struct AnswerView: View {
     @StateObject private var discoverabilityVM = SettingsDetailViewModel()
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     init(category: ProfileCategory, onContinue: @escaping (ProfileCategory) -> Bool) {
         self.category = category
@@ -17,107 +18,171 @@ struct AnswerView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                progressHeader
+        ZStack {
+            MeshAuroraBackgroundView()
+                .ignoresSafeArea()
 
-                HStack(spacing: 8) {
-                    Image(systemName: "brain.head.profile")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(Color(hex: 0xFF2D55))
-                    Text("İlişki Dinamikleri")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(Color(hex: 0xFF2D55))
-                }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    progressHeader
 
-                Text(questionTitle)
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundStyle(.primary)
+                    categoryBadgeRow
 
-                Text(questionSubtitle)
-                    .font(.system(size: 15))
-                    .foregroundStyle(.secondary)
-                    .padding(.bottom, 2)
+                    Text(questionTitle)
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundStyle(.primary)
 
-                VStack(spacing: 10) {
-                    ForEach(Array(category.options.enumerated()), id: \.offset) { idx, option in
-                        optionRow(index: idx + 1, option: option)
+                    Text(questionSubtitle)
+                        .font(.system(size: 15))
+                        .foregroundStyle(.secondary)
+                        .padding(.bottom, 2)
+
+                    VStack(spacing: 10) {
+                        ForEach(Array(category.options.enumerated()), id: \.offset) { idx, option in
+                            optionRow(index: idx + 1, option: option)
+                        }
+                    }
+
+                    if !draftSelection.isEmpty {
+                        clearSelectionButton
                     }
                 }
-
-                if !draftSelection.isEmpty {
-                    Button(role: .destructive) {
-                        draftSelection = ""
-                    } label: {
-                        Text("Seçimi temizle")
-                            .font(.system(size: 15, weight: .semibold))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                            .background(Color.red.opacity(0.08))
-                            .foregroundStyle(.red)
-                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    }
-                    .buttonStyle(.plain)
-                }
+                .padding(.horizontal, 16)
+                .padding(.top, 12)
+                .padding(.bottom, 110)
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 12)
-            .padding(.bottom, 110)
+            .scrollDismissesKeyboard(.interactively)
+            .background(Color.clear)
         }
-        .background(
-            LinearGradient(
-                colors: [
-                    colorScheme == .dark ? Color(hex: 0x12131A) : Color(hex: 0xFFF6F7),
-                    colorScheme == .dark ? Color(hex: 0x171A24) : Color(hex: 0xF3F6FF),
-                    colorScheme == .dark ? Color(hex: 0x0D0E14) : Color.white,
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-        )
-        .navigationTitle("VibeCheck")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
-        .safeAreaInset(edge: .bottom) {
-            HStack(spacing: 10) {
+        .toolbarBackground(Color.clear, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
                 Button {
-                    saveAndPause()
+                    dismiss()
                 } label: {
-                    Image(systemName: "pause.fill")
-                        .font(.system(size: 16, weight: .semibold))
-                        .frame(width: 54, height: 54)
-                        .background(Color.black)
-                        .foregroundStyle(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(Color.primary)
+                        .frame(width: 36, height: 36)
+                        .background(
+                            HarmonyPanelChrome.toolbarBackGlass(
+                                diameter: 36,
+                                colorScheme: colorScheme,
+                                reduceTransparency: reduceTransparency
+                            )
+                        )
                 }
-
-                Button {
-                    saveAndContinue()
-                } label: {
-                    HStack(spacing: 8) {
-                        Text("Devam Et")
-                            .font(.headline)
-                        Image(systemName: "arrow.forward")
-                            .font(.system(size: 14, weight: .semibold))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(Color.pink)
-                    .foregroundStyle(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                }
-                .disabled(draftSelection.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                .opacity(draftSelection.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.6 : 1.0)
+                .buttonStyle(.plain)
+                .accessibilityLabel("Geri")
             }
-            .padding(.horizontal)
-            .padding(.top, 10)
-            .padding(.bottom, 10)
-            .background(.ultraThinMaterial)
+            ToolbarItem(placement: .principal) {
+                answerToolbarTitle
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
+            bottomActionBar
         }
         .onAppear {
             draftSelection = selection
         }
+    }
+
+    private var answerToolbarTitle: some View {
+        let dark = colorScheme == .dark
+        return Text("VibeCheck")
+            .font(.system(size: 20, weight: .heavy, design: .default))
+            .tracking(-0.6)
+            .foregroundStyle(Color(hex: 0xE51245))
+            .shadow(color: dark ? Color.black.opacity(0.55) : Color.black.opacity(0.22), radius: 0, x: 0, y: 1)
+            .shadow(color: dark ? Color.black.opacity(0.35) : Color.black.opacity(0.08), radius: 2, x: 0, y: 0)
+            .shadow(color: dark ? Color.white.opacity(0.12) : Color.clear, radius: 1, x: 0, y: -0.5)
+    }
+
+    private var categoryBadgeRow: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "brain.head.profile")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color(hex: 0xFF2D55))
+            Text("İlişki Dinamikleri")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color(hex: 0xFF2D55))
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(HarmonyPanelChrome.insetWell(cornerRadius: 12, colorScheme: colorScheme))
+    }
+
+    private var bottomActionBar: some View {
+        HStack(spacing: 10) {
+            Button {
+                saveAndPause()
+            } label: {
+                Image(systemName: "pause.fill")
+                    .font(.system(size: 16, weight: .semibold))
+                    .frame(width: 54, height: 54)
+                    .foregroundStyle(.white)
+                    .background(answerPauseChrome)
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                saveAndContinue()
+            } label: {
+                HStack(spacing: 8) {
+                    Text("Devam Et")
+                        .font(.headline)
+                    Image(systemName: "arrow.forward")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .foregroundStyle(.white)
+                .background(HarmonyPanelChrome.primaryCTAFill(cornerRadius: 14, colorScheme: colorScheme))
+            }
+            .buttonStyle(.plain)
+            .disabled(draftSelection.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            .opacity(draftSelection.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.6 : 1.0)
+        }
+        .padding(.horizontal)
+        .padding(.top, 10)
+        .padding(.bottom, 10)
+        .background(.ultraThinMaterial)
+    }
+
+    /// Duraklat — opak siyah yerine cam + yoğun koyu dolgu (detay geri ile uyumlu dil).
+    private var answerPauseChrome: some View {
+        let corner: CGFloat = 14
+        let shape = RoundedRectangle(cornerRadius: corner, style: .continuous)
+        return ZStack {
+            shape.fill(Material.thin)
+            shape.fill(Color.black.opacity(colorScheme == .dark ? 0.52 : 0.78))
+        }
+        .clipShape(shape)
+        .overlay {
+            shape.strokeBorder(Color.white.opacity(colorScheme == .dark ? 0.14 : 0.22), lineWidth: 1)
+        }
+    }
+
+    private var clearSelectionButton: some View {
+        Button(role: .destructive) {
+            draftSelection = ""
+        } label: {
+            Text("Seçimi temizle")
+                .font(.system(size: 15, weight: .semibold))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .foregroundStyle(Color(hex: 0xDC2626))
+                .background(
+                    HarmonyPanelChrome.secondaryTintedButtonBackground(
+                        cornerRadius: 14,
+                        colorScheme: colorScheme,
+                        tint: Color(hex: 0xDC2626)
+                    )
+                )
+        }
+        .buttonStyle(.plain)
     }
 
     private var progressHeader: some View {
@@ -129,14 +194,20 @@ struct AnswerView: View {
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule()
-                        .fill(Color.secondary.opacity(0.15))
+                        .fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.08))
                     Capsule()
                         .fill(Color(hex: 0xFF2D55))
                         .frame(width: geo.size.width * progress)
                 }
             }
             .frame(height: 8)
+            .padding(.horizontal, 2)
         }
+        .padding(14)
+        .background(
+            HarmonyPanelChrome.panelBackdrop(cornerRadius: 16, colorScheme: colorScheme)
+                .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme), radius: 10, x: 0, y: 4)
+        )
     }
 
     private func optionRow(index: Int, option: String) -> some View {
@@ -165,14 +236,13 @@ struct AnswerView: View {
             .padding(.horizontal, 14)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Color(.systemBackground))
-                    .shadow(color: Color.black.opacity(0.03), radius: 10, x: 0, y: 5)
+                HarmonyPanelChrome.panelBackdrop(cornerRadius: 16, colorScheme: colorScheme)
+                    .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme), radius: 10, x: 0, y: 4)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .stroke(
-                        selected ? Color(hex: 0xFF2D55).opacity(0.45) : Color(.separator).opacity(0.25),
+                        selected ? Color(hex: 0xFF2D55).opacity(0.52) : Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.07),
                         lineWidth: selected ? 1.5 : 1
                     )
             )

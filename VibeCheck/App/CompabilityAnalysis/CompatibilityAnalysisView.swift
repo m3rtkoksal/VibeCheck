@@ -20,16 +20,8 @@ struct CompatibilityAnalysisView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(
-                colors: [
-                    colorScheme == .dark ? Color(hex: 0x12131A) : Color(hex: 0xFFF6F7),
-                    colorScheme == .dark ? Color(hex: 0x171A24) : Color(hex: 0xF3F6FF),
-                    colorScheme == .dark ? Color(hex: 0x0D0E14) : Color.white,
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            Color.clear
+                .ignoresSafeArea()
 
             VStack(spacing: 0) {
                 MainTabGlassTopBar(title: "Uyum Analizi") {
@@ -97,9 +89,8 @@ struct CompatibilityAnalysisView: View {
                 .padding(.horizontal, 16)
                 .frame(maxWidth: .infinity)
                 .frame(minHeight: 52)
-                .background(Color.pink)
+                .background(HarmonyPanelChrome.primaryCTAFill(cornerRadius: 14, colorScheme: colorScheme))
                 .foregroundStyle(.white)
-                .clipShape(RoundedRectangle(cornerRadius: 14))
             }
             .buttonStyle(.plain)
             .disabled(vm.partnerQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || vm.isAnalyzing)
@@ -187,19 +178,19 @@ struct CompatibilityAnalysisView: View {
                     .foregroundStyle(Color(hex: 0xFF2D55))
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
-                    .background(Color(hex: 0xFF2D55).opacity(0.06))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(Color(hex: 0xFF2D55).opacity(0.55), lineWidth: 1)
+                    .background(
+                        HarmonyPanelChrome.secondaryTintedButtonBackground(
+                            cornerRadius: 12,
+                            colorScheme: colorScheme
+                        )
                     )
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
                 .buttonStyle(.plain)
                 .disabled(vm.myCode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
         }
         .padding(14)
-        .cardStyle()
+        .harmonyGlassCard(cornerRadius: 22, colorScheme: colorScheme)
     }
 
     private var partnerCard: some View {
@@ -248,8 +239,7 @@ struct CompatibilityAnalysisView: View {
                 }
                 .padding(.horizontal, 14)
                 .frame(minHeight: 48)
-                .background(Color(.secondarySystemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .background(HarmonyPanelChrome.insetWell(cornerRadius: 12, colorScheme: colorScheme))
 
                 Text("ya da")
                     .font(.system(size: 13, weight: .medium))
@@ -269,18 +259,18 @@ struct CompatibilityAnalysisView: View {
                     .foregroundStyle(Color(hex: 0xFF2D55))
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
-                    .background(Color(hex: 0xFF2D55).opacity(0.06))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(Color(hex: 0xFF2D55).opacity(0.55), lineWidth: 1)
+                    .background(
+                        HarmonyPanelChrome.secondaryTintedButtonBackground(
+                            cornerRadius: 12,
+                            colorScheme: colorScheme
+                        )
                     )
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
                 .buttonStyle(.plain)
             }
         }
         .padding(14)
-        .cardStyle()
+        .harmonyGlassCard(cornerRadius: 22, colorScheme: colorScheme)
     }
 
     private var aiCard: some View {
@@ -296,30 +286,28 @@ struct CompatibilityAnalysisView: View {
                 Text("AI Analizi")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundStyle(.primary)
+
+                Spacer(minLength: 0)
             }
 
             Text("Yapay zeka modelimiz, dijital izlerinizi ve etkileşim tarzlarınızı analiz ederek detaylı bir uyum raporu çıkarır.")
                 .font(.system(size: 14))
                 .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
-        .cardStyle()
+        .harmonyGlassCard(cornerRadius: 22, colorScheme: colorScheme)
     }
 
 }
 
 private extension View {
-    func cardStyle() -> some View {
-        self
-            .background(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(Color(.systemBackground))
-                    .shadow(color: Color.black.opacity(0.03), radius: 12, x: 0, y: 6)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(Color(.separator).opacity(0.22), lineWidth: 1)
-            )
+    func harmonyGlassCard(cornerRadius: CGFloat, colorScheme: ColorScheme) -> some View {
+        self.background(
+            HarmonyPanelChrome.panelBackdrop(cornerRadius: cornerRadius, colorScheme: colorScheme)
+                .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme), radius: 12, x: 0, y: 6)
+        )
     }
 }
 

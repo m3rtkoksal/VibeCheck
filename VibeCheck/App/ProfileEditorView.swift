@@ -41,7 +41,8 @@ struct ProfileEditorView: View {
                 .toolbarBackground(palette.pageBackground.opacity(0.94), for: .navigationBar)
             } else {
                 ZStack {
-                    palette.pageBackground.ignoresSafeArea()
+                    Color.clear
+                        .ignoresSafeArea()
                     VStack(spacing: 0) {
                         MainTabGlassTopBar(title: "Profil") {
                             IncomingNotificationsToolbarButton()
@@ -81,9 +82,8 @@ struct ProfileEditorView: View {
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
-                        .background(Color(hex: 0xFF2D55))
                         .foregroundStyle(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .background(HarmonyPanelChrome.primaryCTAFill(cornerRadius: 12, colorScheme: colorScheme))
                 }
                 .padding(.horizontal)
                 .padding(.top, 10)
@@ -122,51 +122,17 @@ struct ProfileEditorView: View {
     }
 
     private func profileHighlightCardChrome<Content: View>(
-        kind: ProfileHighlightCardKind,
+        kind _: ProfileHighlightCardKind,
         @ViewBuilder content: () -> Content
     ) -> some View {
-        let orbOpacity = colorScheme == .dark ? 0.22 : 0.32
-        let fill: Color
-        let orb: Color
-        let stroke: Color
-        switch kind {
-        case .privateNote:
-            fill = palette.privateNoteCardFill
-            orb = palette.privateNoteOrbAccent
-            stroke = palette.privateNoteCardStroke
-        case .characterInsight:
-            fill = palette.characterInsightCardFill
-            orb = palette.characterInsightOrbAccent
-            stroke = palette.characterInsightCardStroke
-        }
-
         return content()
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background {
-                RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .fill(fill)
-                    .overlay(alignment: .topTrailing) {
-                        Circle()
-                            .fill(orb.opacity(orbOpacity))
-                            .frame(width: 88, height: 88)
-                            .blur(radius: 24)
-                            .offset(x: 12, y: -28)
-                            .allowsHitTesting(false)
-                    }
-                    .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                HarmonyPanelChrome.panelBackdrop(cornerRadius: 22, colorScheme: colorScheme)
+                    .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme), radius: 10, x: 0, y: 5)
             }
-            .overlay(
-                RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .stroke(stroke, lineWidth: 1.5)
-            )
-            .shadow(
-                color: Color.black.opacity(colorScheme == .dark ? 0.25 : 0.05),
-                radius: 8,
-                x: 0,
-                y: 3
-            )
     }
 
     // MARK: - Kendim hakkında (özel)
@@ -198,8 +164,7 @@ struct ProfileEditorView: View {
                         Spacer(minLength: 10)
 
                         ZStack {
-                            Circle()
-                                .fill(palette.chevronBadgeFill)
+                            HarmonyPanelChrome.chevronCueCircle(diameter: 28, colorScheme: colorScheme)
                             Image(systemName: "chevron.right")
                                 .font(.system(size: 12, weight: .semibold))
                                 .foregroundStyle(palette.onSurfaceMuted)
@@ -259,8 +224,7 @@ struct ProfileEditorView: View {
                         }
 
                         ZStack {
-                            Circle()
-                                .fill(palette.chevronBadgeFill)
+                            HarmonyPanelChrome.chevronCueCircle(diameter: 28, colorScheme: colorScheme)
                             Image(systemName: "chevron.right")
                                 .font(.system(size: 12, weight: .semibold))
                                 .foregroundStyle(palette.onSurfaceMuted)
@@ -294,16 +258,12 @@ struct ProfileEditorView: View {
                 Button {
                     reverseQuestionOrder.toggle()
                 } label: {
-                    ZStack {
-                        Circle()
-                            .fill(palette.questionSortWell)
-                            .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
-                        Image(systemName: "arrow.up.arrow.down.circle.fill")
-                            .font(.system(size: 20, weight: .medium))
-                            .foregroundStyle(palette.secondaryAccent)
-                    }
-                    .frame(width: 40, height: 40)
-                    .accessibilityLabel("Soru sırasını ters çevir")
+                    Image(systemName: "arrow.up.arrow.down.circle.fill")
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundStyle(Color(hex: 0xE51245))
+                        .frame(width: 40, height: 40)
+                        .background(HarmonyPanelChrome.toolbarRoundGlass(diameter: 40, colorScheme: colorScheme))
+                        .accessibilityLabel("Soru sırasını ters çevir")
                 }
                 .buttonStyle(.plain)
             }
@@ -344,13 +304,8 @@ struct ProfileEditorView: View {
             .padding(.vertical, 18)
             .padding(.horizontal, 18)
             .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(palette.questionCardFill)
-                    .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.2 : 0.04), radius: 10, x: 0, y: 3)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(palette.cardStrokeMuted, lineWidth: 1)
+                HarmonyPanelChrome.panelBackdrop(cornerRadius: 18, colorScheme: colorScheme)
+                    .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme), radius: 10, x: 0, y: 4)
             )
             .contentShape(Rectangle())
         }

@@ -6,6 +6,8 @@ import UIKit
 
 struct HelpSupportView: View {
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     @FocusState private var searchFocused: Bool
     @State private var searchText = ""
@@ -60,49 +62,81 @@ struct HelpSupportView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: HelpSupportSpacing.xl) {
-                searchBar
+        ZStack {
+            MeshAuroraBackgroundView()
+                .ignoresSafeArea()
 
-                topicSection
+            ScrollView {
+                VStack(alignment: .leading, spacing: HelpSupportSpacing.xl) {
+                    searchBar
 
-                faqSection
+                    topicSection
 
-                contactBanner
+                    faqSection
+
+                    contactBanner
+                }
+                .frame(maxWidth: 600)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, HelpSupportSpacing.containerPadding)
+                .padding(.top, HelpSupportSpacing.md)
+                .padding(.bottom, 36)
             }
-            .frame(maxWidth: 600)
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, HelpSupportSpacing.containerPadding)
-            .padding(.top, HelpSupportSpacing.md)
-            .padding(.bottom, 36)
+            .scrollDismissesKeyboard(.interactively)
+            .background(Color.clear)
         }
-        .scrollDismissesKeyboard(.interactively)
-        .background(palette.pageBackground.ignoresSafeArea())
         .navigationBarTitleDisplayMode(.inline)
-        .navigationTitle("")
-        .toolbarBackground(palette.surface, for: .navigationBar)
-        .toolbarBackground(.visible, for: .navigationBar)
+        .navigationBarBackButtonHidden(true)
+        .toolbarBackground(Color.clear, for: .navigationBar)
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(Color.primary)
+                        .frame(width: 36, height: 36)
+                        .background(
+                            HarmonyPanelChrome.toolbarBackGlass(
+                                diameter: 36,
+                                colorScheme: colorScheme,
+                                reduceTransparency: reduceTransparency
+                            )
+                        )
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Geri")
+            }
             ToolbarItem(placement: .principal) {
-                Text("Destek")
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(palette.navigationTitleAccent)
+                helpToolbarTitle
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     searchFocused = true
                 } label: {
                     Image(systemName: "magnifyingglass")
-                        .font(.system(size: 20, weight: .medium))
-                        .foregroundStyle(palette.toolbarIcon)
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(Color.primary)
+                        .frame(width: 36, height: 36)
+                        .background(HarmonyPanelChrome.toolbarRoundGlass(diameter: 36, colorScheme: colorScheme))
                 }
                 .accessibilityLabel("Aramayı aç")
             }
         }
-        .tint(palette.navigationTitleAccent)
+        .tint(Color(hex: 0xE51245))
     }
 
-    // MARK: - Arama
+    private var helpToolbarTitle: some View {
+        let dark = colorScheme == .dark
+        return Text("Destek")
+            .font(.system(size: 20, weight: .heavy, design: .default))
+            .tracking(-0.5)
+            .foregroundStyle(Color(hex: 0xE51245))
+            .shadow(color: dark ? Color.black.opacity(0.55) : Color.black.opacity(0.22), radius: 0, x: 0, y: 1)
+            .shadow(color: dark ? Color.black.opacity(0.35) : Color.black.opacity(0.08), radius: 2, x: 0, y: 0)
+            .shadow(color: dark ? Color.white.opacity(0.12) : Color.clear, radius: 1, x: 0, y: -0.5)
+    }
 
     private var searchBar: some View {
         HStack(spacing: HelpSupportSpacing.md) {
@@ -119,15 +153,12 @@ struct HelpSupportView: View {
         .padding(.trailing, HelpSupportSpacing.md)
         .padding(.vertical, HelpSupportSpacing.md)
         .background(
-            RoundedRectangle(cornerRadius: HelpSupportRadii.twoXL, style: .continuous)
-                .fill(palette.searchFieldBackground)
+            HarmonyPanelChrome.insetWell(
+                cornerRadius: HelpSupportRadii.twoXL,
+                colorScheme: colorScheme
+            )
         )
-        .clipShape(RoundedRectangle(cornerRadius: HelpSupportRadii.twoXL, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: HelpSupportRadii.twoXL, style: .continuous)
-                .stroke(palette.searchFieldBorder, lineWidth: colorScheme == .dark ? 1 : 0)
-        )
-        .shadow(color: Color.black.opacity(colorScheme == .dark ? 0 : 0.04), radius: 20, x: 0, y: 10)
+        .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme), radius: 10, x: 0, y: 4)
     }
 
     // MARK: - Konular (bento grid)
@@ -161,16 +192,12 @@ struct HelpSupportView: View {
             }
         } label: {
             VStack(alignment: .leading, spacing: HelpSupportSpacing.sm) {
-                ZStack {
-                    Circle()
-                        .fill(palette.topicIconWellFill)
-                        .frame(width: 40, height: 40)
-
-                    Image(systemName: topic.systemImageName)
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(palette.topicIconForeground)
-                }
-                .padding(.bottom, 2)
+                Image(systemName: topic.systemImageName)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(Color(hex: 0xFF2D55))
+                    .frame(width: 40, height: 40)
+                    .background(HarmonyPanelChrome.toolbarRoundGlass(diameter: 40, colorScheme: colorScheme))
+                    .padding(.bottom, 2)
 
                 Text(topic.title)
                     .font(.system(size: 17, weight: .semibold))
@@ -188,14 +215,16 @@ struct HelpSupportView: View {
             .frame(maxWidth: .infinity, alignment: .topLeading)
             .frame(height: 150, alignment: .topLeading)
             .background(
-                RoundedRectangle(cornerRadius: HelpSupportRadii.twoXL, style: .continuous)
-                    .fill(palette.cardSurfaceLowest)
+                HarmonyPanelChrome.panelBackdrop(
+                    cornerRadius: HelpSupportRadii.twoXL,
+                    colorScheme: colorScheme
+                )
+                .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme), radius: 14, x: 0, y: 6)
             )
-            .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.22 : 0.04), radius: 20, x: 0, y: 10)
             .overlay(
                 RoundedRectangle(cornerRadius: HelpSupportRadii.twoXL, style: .continuous)
                     .stroke(
-                        isSelected ? palette.selectionStroke : Color.clear,
+                        isSelected ? Color(hex: 0xE51245).opacity(colorScheme == .dark ? 0.85 : 0.55) : Color.clear,
                         lineWidth: isSelected ? 2 : 0
                     )
             )
@@ -219,10 +248,12 @@ struct HelpSupportView: View {
                     .padding(HelpSupportSpacing.md)
                     .frame(maxWidth: .infinity)
                     .background(
-                        RoundedRectangle(cornerRadius: HelpSupportRadii.twoXL, style: .continuous)
-                            .fill(palette.cardSurfaceLowest)
+                        HarmonyPanelChrome.panelBackdrop(
+                            cornerRadius: HelpSupportRadii.twoXL,
+                            colorScheme: colorScheme
+                        )
+                        .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme), radius: 12, x: 0, y: 5)
                     )
-                    .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.2 : 0.04), radius: 18, x: 0, y: 8)
             } else {
                 VStack(spacing: HelpSupportSpacing.sm) {
                     ForEach(filteredFAQs) { item in
@@ -248,16 +279,18 @@ struct HelpSupportView: View {
                 .foregroundStyle(palette.onSurface)
                 .multilineTextAlignment(.leading)
         }
-        .tint(palette.primary)
+        .tint(Color(hex: 0xE51245))
         .padding(HelpSupportSpacing.md)
         .background(
-            RoundedRectangle(cornerRadius: HelpSupportRadii.twoXL, style: .continuous)
-                .fill(palette.cardSurfaceLowest)
+            HarmonyPanelChrome.panelBackdrop(
+                cornerRadius: HelpSupportRadii.twoXL,
+                colorScheme: colorScheme
+            )
+            .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme), radius: 14, x: 0, y: 6)
         )
-        .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.2 : 0.04), radius: 18, x: 0, y: 8)
         .overlay(
             RoundedRectangle(cornerRadius: HelpSupportRadii.twoXL, style: .continuous)
-                .stroke(palette.outlineSoft, lineWidth: 1)
+                .stroke(Color.primary.opacity(colorScheme == .dark ? 0.14 : 0.08), lineWidth: 1)
         )
         .transaction { txn in txn.animation = .easeInOut(duration: 0.2) }
     }
@@ -266,30 +299,26 @@ struct HelpSupportView: View {
 
     private var contactBanner: some View {
         VStack(spacing: HelpSupportSpacing.md) {
-            ZStack {
-                Circle()
-                    .fill(palette.surfaceLowestMuted)
-                    .frame(width: 56, height: 56)
-
-                Image(systemName: "bubble.left.and.bubble.right.fill")
-                    .font(.system(size: 26, weight: .medium))
-                    .foregroundStyle(palette.onPrimaryContainer)
-            }
+            Image(systemName: "bubble.left.and.bubble.right.fill")
+                .font(.system(size: 26, weight: .medium))
+                .foregroundStyle(Color(hex: 0xE51245))
+                .frame(width: 56, height: 56)
+                .background(HarmonyPanelChrome.toolbarRoundGlass(diameter: 56, colorScheme: colorScheme))
 
             VStack(spacing: HelpSupportSpacing.xs) {
                 Text("Hâlâ yardım mı lazım?")
                     .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(palette.onPrimaryContainer)
+                    .foregroundStyle(palette.onBackground)
 
                 Text(supportSubtitle)
                     .font(.system(size: 15))
-                    .foregroundStyle(palette.onPrimaryContainer.opacity(0.92))
+                    .foregroundStyle(palette.onSurfaceVariant)
                     .multilineTextAlignment(.center)
 
                 if copiedEmailBanner {
                     Text("Destek adresi panoya kopyalandı.")
                         .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(palette.onPrimaryContainer.opacity(0.95))
+                        .foregroundStyle(Color(hex: 0xE51245))
                         .padding(.top, HelpSupportSpacing.xs)
                 }
             }
@@ -300,12 +329,11 @@ struct HelpSupportView: View {
                 } label: {
                     Text("Bize yaz")
                         .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(palette.contactButtonForeground)
+                        .foregroundStyle(.white)
                         .frame(minHeight: 50)
                         .frame(maxWidth: .infinity)
-                        .background(palette.contactButtonBackground)
-                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                        .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 2)
+                        .background(HarmonyPanelChrome.primaryCTAFill(cornerRadius: 16, colorScheme: colorScheme))
+                        .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.35 : 0.14), radius: 10, x: 0, y: 4)
                 }
                 .buttonStyle(.plain)
 
@@ -318,7 +346,9 @@ struct HelpSupportView: View {
                 } label: {
                     Text(Self.supportEmail)
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(palette.onPrimaryContainer.opacity(0.9))
+                        .foregroundStyle(
+                            colorScheme == .dark ? Color(hex: 0xFFB3B5) : Color(hex: 0xE51245)
+                        )
                         .underline()
                 }
                 .buttonStyle(.plain)
@@ -327,11 +357,32 @@ struct HelpSupportView: View {
         }
         .padding(HelpSupportSpacing.lg)
         .frame(maxWidth: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: HelpSupportRadii.twoXL, style: .continuous)
-                .fill(palette.primaryContainer)
-        )
-        .shadow(color: Color.black.opacity(0.04), radius: 20, x: 0, y: 10)
+        .background {
+            ZStack {
+                HarmonyPanelChrome.panelBackdrop(
+                    cornerRadius: HelpSupportRadii.twoXL,
+                    colorScheme: colorScheme
+                )
+                RoundedRectangle(cornerRadius: HelpSupportRadii.twoXL, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color(hex: 0xFF2D55).opacity(colorScheme == .dark ? 0.16 : 0.1),
+                                Color(hex: 0x7C3AED).opacity(colorScheme == .dark ? 0.06 : 0.04),
+                                Color.clear,
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            }
+            .shadow(
+                color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme),
+                radius: 14,
+                x: 0,
+                y: 8
+            )
+        }
     }
 
     private var supportSubtitle: String {
@@ -397,63 +448,17 @@ private enum HelpTopicCategory: String, CaseIterable, Hashable {
     }
 }
 
-// MARK: - Stitch / Material palet (tailwind-config’ten)
+// MARK: - Metin rolleri (mesh / cam üzerinde)
 
 private enum HelpSupportPalette {
     case light
     case dark
-
-    // MARK: Light = önceki Stitch açık tema; Dark = `class="dark"` tailwind-config
-
-    /// Üst çubuk zemini (açık: surface, koyu: inverse-surface)
-    var surface: Color {
-        switch self {
-        case .light: return Color(hex: 0xFAF9FE)
-        case .dark: return Color(hex: 0xE5E1E4)
-        }
-    }
-
-    var pageBackground: Color {
-        switch self {
-        case .light: return Color(hex: 0xFAF9FE)
-        case .dark: return Color(hex: 0x131315)
-        }
-    }
 
     /// Bölüm başlıkları (on-background)
     var onBackground: Color {
         switch self {
         case .light: return Color(hex: 0x1A1B1F)
         case .dark: return Color(hex: 0xE5E1E4)
-        }
-    }
-
-    /// Konu / SSS kartları (açık: beyaz; koyu: surface #131315)
-    var cardSurfaceLowest: Color {
-        switch self {
-        case .light: return Color(hex: 0xFFFFFF)
-        case .dark: return Color(hex: 0x131315)
-        }
-    }
-
-    var surfaceLowestMuted: Color {
-        switch self {
-        case .light: return Color.white.opacity(0.2)
-        case .dark: return Color.white.opacity(0.14)
-        }
-    }
-
-    var searchFieldBackground: Color {
-        switch self {
-        case .light: return Color(hex: 0xF2F2F7)
-        case .dark: return Color(hex: 0x0E0E10)
-        }
-    }
-
-    var searchFieldBorder: Color {
-        switch self {
-        case .light: return Color.clear
-        case .dark: return Color(hex: 0x2A2A2C)
         }
     }
 
@@ -468,80 +473,6 @@ private enum HelpSupportPalette {
         switch self {
         case .light: return Color(hex: 0x5D3F40)
         case .dark: return Color(hex: 0xE6BCBD)
-        }
-    }
-
-    /// Vurgu + DisclosureGroup tint (açık: primary; koyu: primary #ffb3b5)
-    var primary: Color {
-        switch self {
-        case .light: return Color(hex: 0xBA0034)
-        case .dark: return Color(hex: 0xFFB3B5)
-        }
-    }
-
-    /// Üst çubuk başlığı / geri / arama (koyu: inverse-primary)
-    var navigationTitleAccent: Color {
-        switch self {
-        case .light: return Color(hex: 0xBA0034)
-        case .dark: return Color(hex: 0xBE0036)
-        }
-    }
-
-    var toolbarIcon: Color { navigationTitleAccent }
-
-    var topicIconWellFill: Color {
-        switch self {
-        case .light: return primaryContainer
-        case .dark: return Color(hex: 0x0E0E10)
-        }
-    }
-
-    var topicIconForeground: Color {
-        switch self {
-        case .light: return onPrimaryContainer
-        case .dark: return Color(hex: 0xFF5167)
-        }
-    }
-
-    var selectionStroke: Color {
-        switch self {
-        case .light: return Color(hex: 0xBA0034).opacity(0.85)
-        case .dark: return Color(hex: 0xFFB3B5)
-        }
-    }
-
-    var primaryContainer: Color {
-        switch self {
-        case .light: return Color(hex: 0xE51245)
-        case .dark: return Color(hex: 0xFF5167)
-        }
-    }
-
-    var onPrimaryContainer: Color {
-        switch self {
-        case .light: return Color(hex: 0xFFFBFF)
-        case .dark: return Color(hex: 0x5B0015)
-        }
-    }
-
-    var contactButtonBackground: Color {
-        switch self {
-        case .light: return Color(hex: 0xFFFFFF)
-        case .dark: return Color(hex: 0x0E0E10)
-        }
-    }
-
-    var contactButtonForeground: Color {
-        switch self {
-        case .light: return Color(hex: 0xBA0034)
-        case .dark: return Color(hex: 0xE5E1E4)
-        }
-    }
-
-    var outlineSoft: Color {
-        switch self {
-        case .light: return Color(hex: 0xE3E2E7).opacity(0.95)
-        case .dark: return Color(hex: 0x2A2A2C)
         }
     }
 }

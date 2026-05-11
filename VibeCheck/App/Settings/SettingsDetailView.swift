@@ -1,5 +1,4 @@
 import SwiftUI
-import FirebaseAuth
 import PhotosUI
 
 /// Bulunabilirlik: telefon (SMS OTP), X (Firebase OAuth).
@@ -427,6 +426,7 @@ struct SettingsDetailView: View {
                         showAlert = true
                     }
                     showPhotoSheet = false
+                    Task { await vm.syncDiscoverabilityIndex() }
                 }
             }
             .background(
@@ -493,9 +493,10 @@ struct SettingsDetailView: View {
                     .frame(width: size, height: size)
                     .clipShape(Circle())
             } else {
-                Text(profileInitials)
-                    .font(.system(size: 34, weight: .bold))
-                    .foregroundStyle(.secondary)
+                Image(systemName: "person.fill")
+                    .font(.system(size: 48, weight: .medium))
+                    .foregroundStyle(.secondary.opacity(0.55))
+                    .symbolRenderingMode(.hierarchical)
             }
         }
         .frame(width: size, height: size)
@@ -592,30 +593,6 @@ struct SettingsDetailView: View {
         }
     }
 
-    private var profileName: String {
-        let user = Auth.auth().currentUser
-        if let name = user?.displayName, !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            return name
-        }
-        return "Alex Mercer"
-    }
-
-    private var profileEmail: String {
-        let user = Auth.auth().currentUser
-        if let email = user?.email, !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            return email
-        }
-        return "alex.mercer@example.com"
-    }
-
-    private var profileInitials: String {
-        let parts = profileName
-            .split(separator: " ")
-            .prefix(2)
-            .map { String($0.prefix(1)).uppercased() }
-        return parts.joined()
-    }
-
     private var xRowSubtitle: String {
         if vm.xVerified, !trimmed(vm.xUsername).isEmpty {
             return "@\(trimmed(vm.xUsername))"
@@ -650,6 +627,7 @@ struct SettingsDetailView: View {
                             showAlert = true
                         }
                     }
+                    Task { await vm.syncDiscoverabilityIndex() }
                     dismiss()
                 } label: {
                     Text("Kaydet")
