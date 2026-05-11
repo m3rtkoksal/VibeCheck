@@ -15,91 +15,20 @@ struct ProfileSummaryView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .center, spacing: 18) {
-                VStack(alignment: .center, spacing: 10) {
-                    Image("LaunchLogo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 36, height: 36)
-                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-
-                    Text("Senin Profilin")
-                        .font(.system(size: 30, weight: .bold))
-                        .foregroundStyle(.primary)
-
-                    Text("Cevaplarına göre oluşturduğumuz özet.")
-                        .font(.system(size: 15))
-                        .foregroundStyle(colorScheme == .dark ? .secondary : Color.black.opacity(0.68))
-                        .multilineTextAlignment(.center)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.top, 8)
-
-                if selections.isEmpty {
-                    Text("Özet için seçim bulunamadı. Profil ekranına dönüp seçimlerini kaydetmeyi deneyebilirsin.")
-                        .font(.system(size: 15))
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.vertical, 12)
-                } else {
-                    VStack(spacing: 0) {
-                        ForEach(Array(orderedSelections.enumerated()), id: \.offset) { idx, item in
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(item.key.uppercased())
-                                    .font(.system(size: 12, weight: .bold))
-                                    .foregroundStyle(colorScheme == .dark ? Color.white.opacity(0.7) : Color.secondary)
-                                    .kerning(0.4)
-
-                                Text(item.value)
-                                    .font(.system(size: 17, weight: .medium))
-                                    .foregroundStyle(.primary)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 14)
-
-                            if idx < orderedSelections.count - 1 {
-                                Divider()
-                                    .padding(.leading, 16)
-                            }
-                        }
-                    }
-                    .background(
-                        RoundedRectangle(cornerRadius: 18, style: .continuous)
-                            .fill(Color(.systemBackground))
-                            .shadow(color: Color.black.opacity(0.03), radius: 12, x: 0, y: 6)
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 18, style: .continuous)
-                            .stroke(Color(.separator).opacity(0.2), lineWidth: 1)
-                    )
-                    .frame(maxWidth: .infinity)
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 110)
+            profileSummaryScrollContent
+                .padding(.horizontal, 16)
+                .padding(.bottom, 110)
         }
+        .scrollDismissesKeyboard(.interactively)
+        .background(Color.clear)
         .background(
-            Group {
-                if colorScheme == .dark {
-                    LinearGradient(
-                        colors: [Color(hex: 0x121217), Color(hex: 0x191A24), Color(hex: 0x0F1016)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                } else {
-                    LinearGradient(
-                        colors: [Color(hex: 0xFFF6F7), Color(hex: 0xF3F6FF), Color.white],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                }
-            }
-            .ignoresSafeArea()
+            MeshAuroraBackgroundView()
+                .ignoresSafeArea()
         )
         .navigationTitle("Hazırsın")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(Color.clear, for: .navigationBar)
+        .tint(Color(hex: 0xE51245))
         .onAppear {
             // Prefer fresh values; fixes empty summary when destination was constructed early.
             let fresh = ProfileEditorView.selectionsDictionary()
@@ -116,21 +45,118 @@ struct ProfileSummaryView: View {
             } label: {
                 HStack(spacing: 8) {
                     Text("Analiz Et")
-                        .font(.headline)
+                        .font(.system(size: 17, weight: .semibold))
                     Image(systemName: "arrow.forward")
                         .font(.system(size: 14, weight: .semibold))
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .background(Color.pink)
+                .padding(.vertical, 15)
                 .foregroundStyle(.white)
-                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .background(HarmonyPanelChrome.primaryCTAFill(cornerRadius: 14, colorScheme: colorScheme))
+                .shadow(color: summaryBottomCtaShadow, radius: 12, x: 0, y: 5)
             }
             .padding(.horizontal)
             .padding(.top, 10)
             .padding(.bottom, 10)
             .background(.ultraThinMaterial)
         }
+    }
+
+    private var profileSummaryScrollContent: some View {
+        VStack(alignment: .center, spacing: 18) {
+            VStack(alignment: .center, spacing: 10) {
+                Image("LaunchLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 36, height: 36)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme), radius: 8, x: 0, y: 4)
+
+                Text("Senin Profilin")
+                    .font(.system(size: 30, weight: .heavy))
+                    .tracking(-0.6)
+                    .foregroundStyle(Color(hex: 0xE51245))
+                    .multilineTextAlignment(.center)
+                    .shadow(color: summaryHeroShadowOuter, radius: 0, x: 0, y: 1)
+                    .shadow(color: summaryHeroShadowMid, radius: 4, x: 0, y: 2)
+
+                Text("Cevaplarına göre oluşturduğumuz özet.")
+                    .font(.system(size: 15))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.top, 8)
+
+            if selections.isEmpty {
+                profileSummaryEmptyState
+            } else {
+                profileSummarySelectionsCard
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var profileSummaryEmptyState: some View {
+        Text("Özet için seçim bulunamadı. Profil ekranına dönüp seçimlerini kaydetmeyi deneyebilirsin.")
+            .font(.system(size: 15))
+            .foregroundStyle(.secondary)
+            .multilineTextAlignment(.center)
+            .padding(20)
+            .frame(maxWidth: .infinity)
+            .background(
+                HarmonyPanelChrome.panelBackdrop(cornerRadius: 20, colorScheme: colorScheme)
+                    .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme), radius: 12, x: 0, y: 5)
+            )
+    }
+
+    private var profileSummarySelectionsCard: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(orderedSelections.enumerated()), id: \.offset) { idx, item in
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(item.key.uppercased())
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(.secondary)
+                        .kerning(0.4)
+
+                    Text(item.value)
+                        .font(.system(size: 17, weight: .medium))
+                        .foregroundStyle(.primary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+
+                if idx < orderedSelections.count - 1 {
+                    Rectangle()
+                        .fill(summaryRowDividerFill)
+                        .frame(height: 1)
+                        .padding(.leading, 16)
+                }
+            }
+        }
+        .background(
+            HarmonyPanelChrome.panelBackdrop(cornerRadius: 20, colorScheme: colorScheme)
+                .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme), radius: 14, x: 0, y: 6)
+        )
+        .frame(maxWidth: .infinity)
+    }
+
+    private var summaryHeroShadowOuter: Color {
+        colorScheme == .dark ? Color.black.opacity(0.55) : Color.black.opacity(0.14)
+    }
+
+    private var summaryHeroShadowMid: Color {
+        colorScheme == .dark ? Color.black.opacity(0.22) : Color.black.opacity(0.06)
+    }
+
+    private var summaryBottomCtaShadow: Color {
+        Color.black.opacity(colorScheme == .dark ? 0.4 : 0.14)
+    }
+
+    private var summaryRowDividerFill: Color {
+        Color.primary.opacity(colorScheme == .dark ? 0.14 : 0.08)
     }
 
     private var orderedSelections: [(key: String, value: String)] {

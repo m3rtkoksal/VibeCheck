@@ -25,87 +25,115 @@ struct OnboardingView: View {
 
     var body: some View {
         ZStack {
-            onboardingBackground
+            MeshAuroraBackgroundView()
                 .ignoresSafeArea()
 
             TabView(selection: $currentPage) {
                 ForEach(Array(pages.enumerated()), id: \.offset) { index, page in
-                    VStack(spacing: 16) {
-                        Spacer(minLength: 12)
-                        ZStack {
-                            Circle()
-                                .fill(Color(hex: 0xFF2D55).opacity(0.10))
-                                .frame(width: 170, height: 170)
-                                .blur(radius: 20)
-
-                            Circle()
-                                .fill(
-                                    RadialGradient(
-                                        colors: [
-                                            Color.white.opacity(0.9),
-                                            Color(hex: 0xFFF4FA),
-                                        ],
-                                        center: .center,
-                                        startRadius: 8,
-                                        endRadius: 78
-                                    )
-                                )
-                                .frame(width: 156, height: 156)
-                                .overlay(
-                                    Circle()
-                                        .stroke(Color(hex: 0xFF2D55).opacity(0.18), lineWidth: 1)
-                                )
-
-                            Circle()
-                                .stroke(Color(hex: 0xFF2D55).opacity(0.16), lineWidth: 6)
-                                .frame(width: 126, height: 126)
-
-                            Image(systemName: page.icon)
-                                .font(.system(size: 56, weight: .semibold))
-                                .foregroundStyle(Color(hex: 0xFF2D55))
-                        }
-
-                        Text(page.title)
-                            .font(.title2.bold())
-                            .foregroundStyle(titleColor)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 24)
-
-                        Text(page.subtitle)
-                            .foregroundStyle(subtitleColor)
-                            .multilineTextAlignment(.center)
-                            .frame(maxWidth: 340)
-                            .padding(.horizontal, 24)
-
-                        Spacer(minLength: 44)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .tag(index)
+                    onboardingSlide(page: page)
+                        .tag(index)
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .always))
             .safeAreaInset(edge: .bottom) {
-                HStack {
-                    Spacer(minLength: 0)
-                    Button(action: continueTapped) {
-                        Text(currentPage == pages.count - 1 ? "Başla" : "Devam Et")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(Color.pink)
-                            .foregroundStyle(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 14))
-                    }
-                    .buttonStyle(.plain)
-                    .frame(maxWidth: 360)
-                    Spacer(minLength: 0)
-                }
-                .padding(.horizontal, 24)
-                .padding(.top, 10)
-                .padding(.bottom, 12)
-                .background(.ultraThinMaterial)
+                onboardingBottomBar
             }
         }
+        .tint(Color(hex: 0xE51245))
+    }
+
+    private func onboardingSlide(page: OnboardingPage) -> some View {
+        VStack(spacing: 20) {
+            Spacer(minLength: 12)
+
+            onboardingHeroIcon(systemName: page.icon)
+
+            VStack(spacing: 12) {
+                Text(page.title)
+                    .font(.system(size: 26, weight: .heavy))
+                    .tracking(-0.5)
+                    .foregroundStyle(Color(hex: 0xE51245))
+                    .multilineTextAlignment(.center)
+                    .shadow(color: onboardingTitleShadowOuter, radius: 0, x: 0, y: 1)
+                    .shadow(color: onboardingTitleShadowMid, radius: 3, x: 0, y: 1)
+
+                Text(page.subtitle)
+                    .font(.system(size: 16))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(24)
+            .frame(maxWidth: 360)
+            .background(
+                HarmonyPanelChrome.panelBackdrop(cornerRadius: 24, colorScheme: colorScheme)
+                    .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme), radius: 14, x: 0, y: 6)
+            )
+            .padding(.horizontal, 24)
+
+            Spacer(minLength: 44)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private func onboardingHeroIcon(systemName: String) -> some View {
+        ZStack {
+            Circle()
+                .fill(Color(hex: 0xFF2D55).opacity(colorScheme == .dark ? 0.14 : 0.1))
+                .frame(width: 180, height: 180)
+                .blur(radius: 28)
+
+            ZStack {
+                Circle()
+                    .fill(Material.thin)
+                    .frame(width: 132, height: 132)
+
+                Circle()
+                    .strokeBorder(
+                        Color(hex: 0xE51245).opacity(colorScheme == .dark ? 0.42 : 0.28),
+                        lineWidth: 2
+                    )
+                    .frame(width: 132, height: 132)
+
+                Image(systemName: systemName)
+                    .font(.system(size: 52, weight: .semibold))
+                    .foregroundStyle(Color(hex: 0xFF2D55))
+            }
+            .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme), radius: 14, x: 0, y: 8)
+        }
+    }
+
+    private var onboardingBottomBar: some View {
+        HStack {
+            Spacer(minLength: 0)
+            Button(action: continueTapped) {
+                Text(currentPage == pages.count - 1 ? "Başla" : "Devam Et")
+                    .font(.system(size: 17, weight: .semibold))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 15)
+                    .foregroundStyle(Color.white)
+                    .background(HarmonyPanelChrome.primaryCTAFill(cornerRadius: 14, colorScheme: colorScheme))
+                    .shadow(color: onboardingCtaShadow, radius: 12, x: 0, y: 5)
+            }
+            .buttonStyle(.plain)
+            .frame(maxWidth: 360)
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 24)
+        .padding(.top, 10)
+        .padding(.bottom, 12)
+        .background(.ultraThinMaterial)
+    }
+
+    private var onboardingTitleShadowOuter: Color {
+        colorScheme == .dark ? Color.black.opacity(0.55) : Color.black.opacity(0.12)
+    }
+
+    private var onboardingTitleShadowMid: Color {
+        colorScheme == .dark ? Color.black.opacity(0.22) : Color.black.opacity(0.05)
+    }
+
+    private var onboardingCtaShadow: Color {
+        Color.black.opacity(colorScheme == .dark ? 0.4 : 0.14)
     }
 
     private func continueTapped() {
@@ -115,73 +143,6 @@ struct OnboardingView: View {
             }
         } else {
             hasCompletedOnboarding = true
-        }
-    }
-
-    private var titleColor: Color {
-        colorScheme == .dark ? Color.black.opacity(0.9) : .primary
-    }
-
-    private var subtitleColor: Color {
-        colorScheme == .dark ? Color.black.opacity(0.72) : .secondary
-    }
-
-    private var onboardingBackground: some View {
-        ZStack {
-            LinearGradient(
-                colors: [
-                    Color(hex: 0xFFF6FB),
-                    Color(hex: 0xF8F4FF),
-                    Color(hex: 0xFFFFFF),
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [
-                            Color(hex: 0xFF4D8D, alpha: 0.26),
-                            Color(hex: 0xFF4D8D, alpha: 0.0),
-                        ],
-                        center: .center,
-                        startRadius: 0,
-                        endRadius: 280
-                    )
-                )
-                .frame(width: 520, height: 520)
-                .offset(x: -150, y: -330)
-
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [
-                            Color(hex: 0x8B5CFF, alpha: 0.18),
-                            Color(hex: 0x8B5CFF, alpha: 0.0),
-                        ],
-                        center: .center,
-                        startRadius: 0,
-                        endRadius: 250
-                    )
-                )
-                .frame(width: 480, height: 480)
-                .offset(x: 170, y: -260)
-
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [
-                            Color(hex: 0xFFB38A, alpha: 0.14),
-                            Color(hex: 0xFFB38A, alpha: 0.0),
-                        ],
-                        center: .center,
-                        startRadius: 0,
-                        endRadius: 220
-                    )
-                )
-                .frame(width: 420, height: 420)
-                .offset(x: 120, y: 360)
         }
     }
 }

@@ -31,34 +31,12 @@ struct ProfileEditorView: View {
     var body: some View {
         Group {
             if setupMode {
-                ScrollView {
-                    profileScrollInner
-                }
-                .scrollDismissesKeyboard(.interactively)
-                .background(palette.pageBackground.ignoresSafeArea())
-                .navigationTitle("Profilini tamamla")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbarBackground(palette.pageBackground.opacity(0.94), for: .navigationBar)
+                profileEditorSetupChrome
             } else {
-                ZStack {
-                    Color.clear
-                        .ignoresSafeArea()
-                    VStack(spacing: 0) {
-                        MainTabGlassTopBar(title: "Profil") {
-                            IncomingNotificationsToolbarButton()
-                        } trailing: {
-                            Color.clear.frame(width: 44, height: 44)
-                        }
-
-                        ScrollView {
-                            profileScrollInner
-                        }
-                        .scrollDismissesKeyboard(.interactively)
-                    }
-                }
-                .navigationBarHidden(true)
+                profileEditorTabChrome
             }
         }
+        .tint(Color(hex: 0xE51245))
         .navigationDestination(item: $selectedCategory) { category in
             AnswerView(
                 category: category,
@@ -79,11 +57,11 @@ struct ProfileEditorView: View {
                     showSummary = true
                 } label: {
                     Text("Devam")
-                        .font(.headline)
+                        .font(.system(size: 17, weight: .semibold))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
                         .foregroundStyle(.white)
-                        .background(HarmonyPanelChrome.primaryCTAFill(cornerRadius: 12, colorScheme: colorScheme))
+                        .background(HarmonyPanelChrome.primaryCTAFill(cornerRadius: 14, colorScheme: colorScheme))
                 }
                 .padding(.horizontal)
                 .padding(.top, 10)
@@ -95,6 +73,44 @@ struct ProfileEditorView: View {
         .onAppear {
             refreshToken = UUID()
         }
+    }
+
+    private var profileEditorSetupChrome: some View {
+        ZStack {
+            MeshAuroraBackgroundView()
+                .ignoresSafeArea()
+
+            ScrollView {
+                profileScrollInner
+            }
+            .scrollDismissesKeyboard(.interactively)
+            .background(Color.clear)
+        }
+        .navigationTitle("Profilini tamamla")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(Color.clear, for: .navigationBar)
+    }
+
+    private var profileEditorTabChrome: some View {
+        ZStack {
+            MeshAuroraBackgroundView()
+                .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                MainTabGlassTopBar(title: "Profil") {
+                    IncomingNotificationsToolbarButton()
+                } trailing: {
+                    Color.clear.frame(width: 44, height: 44)
+                }
+
+                ScrollView {
+                    profileScrollInner
+                }
+                .scrollDismissesKeyboard(.interactively)
+                .background(Color.clear)
+            }
+        }
+        .navigationBarHidden(true)
     }
 
     private var profileScrollInner: some View {
@@ -146,8 +162,10 @@ struct ProfileEditorView: View {
                     HStack(alignment: .center, spacing: 0) {
                         HStack(spacing: 8) {
                             ZStack {
-                                Circle()
-                                    .fill(palette.privateNoteIconWell)
+                                HarmonyPanelChrome.toolbarRoundGlass(
+                                    diameter: 32,
+                                    colorScheme: colorScheme
+                                )
                                 Image(systemName: "lock.fill")
                                     .font(.system(size: 15, weight: .semibold))
                                     .foregroundStyle(palette.privateNoteAccent)
@@ -198,8 +216,10 @@ struct ProfileEditorView: View {
                     HStack(alignment: .center, spacing: 0) {
                         HStack(spacing: 8) {
                             ZStack {
-                                Circle()
-                                    .fill(palette.characterInsightIconWell)
+                                HarmonyPanelChrome.toolbarRoundGlass(
+                                    diameter: 32,
+                                    colorScheme: colorScheme
+                                )
                                 Image(systemName: "sparkles")
                                     .font(.system(size: 15, weight: .semibold))
                                     .foregroundStyle(palette.primaryBlue)
@@ -378,13 +398,6 @@ private enum ProfileEditorScreenPalette {
     case light
     case dark
 
-    var pageBackground: Color {
-        switch self {
-        case .light: return Color(hex: 0xF9F9FF)
-        case .dark: return Color(hex: 0x13151C)
-        }
-    }
-
     var onSurface: Color {
         switch self {
         case .light: return Color(hex: 0x151C27)
@@ -406,67 +419,7 @@ private enum ProfileEditorScreenPalette {
         }
     }
 
-    var secondaryAccent: Color {
-        switch self {
-        case .light: return Color(hex: 0xB71038)
-        case .dark: return Color(hex: 0xFF5A79)
-        }
-    }
-
-    var cardLowestFill: Color {
-        switch self {
-        case .light: return Color(hex: 0xFFFFFF)
-        case .dark: return Color(hex: 0x1C2029)
-        }
-    }
-
-    var characterInsightCardFill: Color {
-        switch self {
-        case .light: return Color(hex: 0xEFF4FF)
-        case .dark: return Color(hex: 0x1A2235)
-        }
-    }
-
-    var characterInsightOrbAccent: Color {
-        switch self {
-        case .light: return Color(hex: 0x8EB0FF)
-        case .dark: return Color(hex: 0x4A62C9)
-        }
-    }
-
-    var characterInsightCardStroke: Color {
-        switch self {
-        case .light: return Color(hex: 0xD6E2FF).opacity(0.8)
-        case .dark: return Color.white.opacity(0.085)
-        }
-    }
-
-    var characterInsightIconWell: Color {
-        primaryBlue.opacity(themeIsLight ? 0.16 : 0.28)
-    }
-
     /// Özel not — sıcak şeftali / terracotta
-    var privateNoteCardFill: Color {
-        switch self {
-        case .light: return Color(hex: 0xFFF8F4)
-        case .dark: return Color(hex: 0x2A2420)
-        }
-    }
-
-    var privateNoteOrbAccent: Color {
-        switch self {
-        case .light: return Color(hex: 0xFFB89A)
-        case .dark: return Color(hex: 0x8F5E50)
-        }
-    }
-
-    var privateNoteCardStroke: Color {
-        switch self {
-        case .light: return Color(hex: 0xFFDCCD).opacity(0.92)
-        case .dark: return Color.white.opacity(0.09)
-        }
-    }
-
     var privateNoteAccent: Color {
         switch self {
         case .light: return Color(hex: 0x9A4026)
@@ -474,39 +427,10 @@ private enum ProfileEditorScreenPalette {
         }
     }
 
-    var privateNoteIconWell: Color {
-        privateNoteAccent.opacity(themeIsLight ? 0.14 : 0.26)
-    }
-
     private var themeIsLight: Bool {
         switch self {
         case .light: return true
         case .dark: return false
-        }
-    }
-
-    var questionCardFill: Color {
-        cardLowestFill
-    }
-
-    var questionSortWell: Color {
-        switch self {
-        case .light: return Color(hex: 0xFFFFFF)
-        case .dark: return Color(hex: 0x252B3A)
-        }
-    }
-
-    var cardStrokeMuted: Color {
-        switch self {
-        case .light: return Color(hex: 0xC3C5D8).opacity(0.55)
-        case .dark: return Color.white.opacity(0.1)
-        }
-    }
-
-    var chevronBadgeFill: Color {
-        switch self {
-        case .light: return Color(hex: 0xFFFFFF)
-        case .dark: return Color(hex: 0x2A3244)
         }
     }
 
