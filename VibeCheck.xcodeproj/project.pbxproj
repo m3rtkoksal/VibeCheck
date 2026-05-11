@@ -8,12 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		08B6594CA4F1480A99399B37 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 9B2A98FC3D2864AAE07F41D8 /* Lottie */; };
-		E4E6D0012F91200000000001 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = E4E6D0022F91200000000002 /* FirebaseStorage */; };
 		1B726C39C3AFFB15E53DF09D /* VibeCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = D24B5A53254B86F7E561F60B /* VibeCode.swift */; };
 		1C961A38A4E435EDD09E86C3 /* LottieAnimationPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DA3D7AE702C22A7DEC23195 /* LottieAnimationPlayer.swift */; };
 		1E6E65E583C508F267047550 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8326276D0350537109A7451E /* MainTabView.swift */; };
-		A1B2C3D42F91000000000001 /* HarmonyPanelChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D42F91000000000002 /* HarmonyPanelChrome.swift */; };
-		E4E5F9012F90500000000001 /* MeshAuroraBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4E5F9012F90500000000002 /* MeshAuroraBackgroundView.swift */; };
 		1E9D61AF4C1F33EAE0376243 /* LoginViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40511D66B25E65DB21ACB283 /* LoginViewModel.swift */; };
 		1FE222C31CF7365560192D30 /* ProfilePhotoStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9957680C0FDCD4B5759272A5 /* ProfilePhotoStore.swift */; };
 		219236C5575F1CFC74CE659D /* SelfProfileInsightStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 440810A40846CA21F94F7E90 /* SelfProfileInsightStore.swift */; };
@@ -36,11 +33,12 @@
 		7A670BB4AD5367D9E318D521 /* SettingsDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE7444158C03BAAD5DD7020B /* SettingsDetailViewModel.swift */; };
 		8A20AEEE7BFC749B7A94B06A /* VibeCheckApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD05BA20B44FED2FF8AF5ED0 /* VibeCheckApp.swift */; };
 		926CF3C73E3F784B4E00EF7B /* loading.json in Resources */ = {isa = PBXBuildFile; fileRef = D038CA21895B99FD9A8A24A2 /* loading.json */; };
-		9440896AEA69777CCFA88371 /* FriendlyCallableError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CE588AA5B7EF3B30BE543E2 /* FriendlyCallableError.swift */; };
+		93B3E0012F90410000000002 /* IncomingCompatibilityRatingsInboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93B3E0032F90410000000002 /* IncomingCompatibilityRatingsInboxView.swift */; };
 		93B3E0022F90410000000001 /* PushNotificationsCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93B3E0042F90410000000003 /* PushNotificationsCoordinator.swift */; };
 		93B3E0052F90410000000006 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 93B3E0062F90410000000007 /* FirebaseMessaging */; };
-		93B3E0012F90410000000002 /* IncomingCompatibilityRatingsInboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93B3E0032F90410000000002 /* IncomingCompatibilityRatingsInboxView.swift */; };
+		9440896AEA69777CCFA88371 /* FriendlyCallableError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CE588AA5B7EF3B30BE543E2 /* FriendlyCallableError.swift */; };
 		A1893C772CE0DFFEA67A2D29 /* AuthProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C42B59B5CDDCBE0B5E598A1B /* AuthProvider.swift */; };
+		A1B2C3D42F91000000000001 /* HarmonyPanelChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D42F91000000000002 /* HarmonyPanelChrome.swift */; };
 		A6D425A62FAB3D37006EC420 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = A6D425A52FAB3D37006EC420 /* GoogleService-Info.plist */; };
 		A7139F562F001A4CB7E89202 /* HelpSupportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7139F562F001A4CB7E89201 /* HelpSupportView.swift */; };
 		B128B4000E233A43F3DD7E38 /* ProfileSetupFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00ECDD4DAA718CF12BACC78 /* ProfileSetupFlowView.swift */; };
@@ -51,6 +49,8 @@
 		D6BB7C08321DC2595621E71D /* DiscoverabilityAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AB67F50A3F7DBF23354CB47 /* DiscoverabilityAuthService.swift */; };
 		E35259E2546666AB4FAB07C3 /* SelfProfileInsightDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDEF90455119BDD43FFD907C /* SelfProfileInsightDashboardView.swift */; };
 		E398B4D6A82186485E79E65B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BBEA28186AC1614EA868AA52 /* Assets.xcassets */; };
+		E4E5F9012F90500000000001 /* MeshAuroraBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4E5F9012F90500000000002 /* MeshAuroraBackgroundView.swift */; };
+		E4E6D0012F91200000000001 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = E4E6D0022F91200000000002 /* FirebaseStorage */; };
 		ECBAC503264D75FA68F4AEE1 /* FirebaseAuthUIDelegateBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EAF8DB2D79AB9E2B2A4F58F /* FirebaseAuthUIDelegateBridge.swift */; };
 		ED2D912864C5A234132A7457 /* SettingsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D86609B4CA8F9578296C074 /* SettingsTabView.swift */; };
 		F03D5E188AB3C1984C4441D4 /* ThemeSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBA0898C352845577AA7324F /* ThemeSelectionView.swift */; };
@@ -81,8 +81,6 @@
 		75F9334D08B9071620854DC9 /* VibeCheck.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VibeCheck.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7F753DD1447B3215E3680AAC /* VibeCheck.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = VibeCheck.entitlements; sourceTree = "<group>"; };
 		8326276D0350537109A7451E /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
-		E4E5F9012F90500000000002 /* MeshAuroraBackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshAuroraBackgroundView.swift; sourceTree = "<group>"; };
-		A1B2C3D42F91000000000002 /* HarmonyPanelChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HarmonyPanelChrome.swift; sourceTree = "<group>"; };
 		8B09809B8DEA1E61645B1CF0 /* QRImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRImage.swift; sourceTree = "<group>"; };
 		8D86609B4CA8F9578296C074 /* SettingsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTabView.swift; sourceTree = "<group>"; };
 		916C3392BA3BF9597A1FA246 /* PrivateNoteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivateNoteView.swift; sourceTree = "<group>"; };
@@ -90,6 +88,7 @@
 		93B3E0042F90410000000003 /* PushNotificationsCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationsCoordinator.swift; sourceTree = "<group>"; };
 		9957680C0FDCD4B5759272A5 /* ProfilePhotoStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePhotoStore.swift; sourceTree = "<group>"; };
 		9C409CE2A97FE76E0ABA07A1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A1B2C3D42F91000000000002 /* HarmonyPanelChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HarmonyPanelChrome.swift; sourceTree = "<group>"; };
 		A6D425A52FAB3D37006EC420 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		A7139F562F001A4CB7E89201 /* HelpSupportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpSupportView.swift; sourceTree = "<group>"; };
 		BBEA28186AC1614EA868AA52 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -100,6 +99,7 @@
 		D24B5A53254B86F7E561F60B /* VibeCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VibeCode.swift; sourceTree = "<group>"; };
 		D79F62D400553A432342DF70 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D82BDAF97F868B56534A8EAA /* SelfProfileAnalysisView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelfProfileAnalysisView.swift; sourceTree = "<group>"; };
+		E4E5F9012F90500000000002 /* MeshAuroraBackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshAuroraBackgroundView.swift; sourceTree = "<group>"; };
 		EE7444158C03BAAD5DD7020B /* SettingsDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsDetailViewModel.swift; sourceTree = "<group>"; };
 		F00ECDD4DAA718CF12BACC78 /* ProfileSetupFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSetupFlowView.swift; sourceTree = "<group>"; };
 		F71BC7E3BE688CDB57AF538D /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
@@ -215,7 +215,6 @@
 		E5DA628BCCD5E6072AC7893C /* VibeCheck */ = {
 			isa = PBXGroup;
 			children = (
-				87852604155E19059FC27C4D /* AppInfo.plist */,
 				A6D425A52FAB3D37006EC420 /* GoogleService-Info.plist */,
 				BBEA28186AC1614EA868AA52 /* Assets.xcassets */,
 				7F753DD1447B3215E3680AAC /* VibeCheck.entitlements */,
@@ -377,7 +376,7 @@
 				CODE_SIGN_ENTITLEMENTS = VibeCheck/VibeCheck.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 5;
 				DEPLOYMENT_POSTPROCESSING = NO;
 				DEVELOPMENT_TEAM = 79G38KD48M;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -531,7 +530,7 @@
 				CODE_SIGN_ENTITLEMENTS = VibeCheck/VibeCheck.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 5;
 				DEPLOYMENT_POSTPROCESSING = NO;
 				DEVELOPMENT_TEAM = 79G38KD48M;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -609,11 +608,6 @@
 			package = B6D5625DE8E6538CB3220157 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
 		};
-		E4E6D0022F91200000000002 /* FirebaseStorage */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = B6D5625DE8E6538CB3220157 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseStorage;
-		};
 		6096CD9753F3C7C531F2520D /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = B6D5625DE8E6538CB3220157 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
@@ -633,6 +627,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 70DA67EBF2CD8513F62C8502 /* XCRemoteSwiftPackageReference "lottie-ios" */;
 			productName = Lottie;
+		};
+		E4E6D0022F91200000000002 /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B6D5625DE8E6538CB3220157 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
