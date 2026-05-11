@@ -128,37 +128,78 @@ struct CompatibilityAnalysisView: View {
 
     private var myCodeCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Button {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    isMyCodeExpanded.toggle()
-                }
-            } label: {
-                HStack(spacing: 10) {
-                    Image(systemName: "qrcode")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(Color(hex: 0x3B82F6))
-                        .frame(width: 30, height: 30)
-                        .background(Color(hex: 0x3B82F6).opacity(0.12))
-                        .clipShape(Circle())
+            Group {
+                if isMyCodeExpanded {
+                    HStack(spacing: 10) {
+                        Image(systemName: "qrcode")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(Color(hex: 0x3B82F6))
+                            .frame(width: 30, height: 30)
+                            .background(Color(hex: 0x3B82F6).opacity(0.12))
+                            .clipShape(Circle())
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Benim Kodum")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundStyle(.primary)
-                        Text(vm.maskedMyCodePreview)
-                            .font(.system(size: 13))
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Benim Kodum")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundStyle(.primary)
+                            Text(vm.maskedMyCodePreview)
+                                .font(.system(size: 13))
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
+
+                        Spacer(minLength: 0)
+
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                isMyCodeExpanded = false
+                            }
+                        } label: {
+                            Image(systemName: "chevron.up")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                                .frame(width: 44, height: 44)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
                     }
+                } else {
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            isMyCodeExpanded = true
+                        }
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: "qrcode")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(Color(hex: 0x3B82F6))
+                                .frame(width: 30, height: 30)
+                                .background(Color(hex: 0x3B82F6).opacity(0.12))
+                                .clipShape(Circle())
 
-                    Spacer()
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Benim Kodum")
+                                    .font(.system(size: 18, weight: .bold))
+                                    .foregroundStyle(.primary)
+                                Text(vm.maskedMyCodePreview)
+                                    .font(.system(size: 13))
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                            }
 
-                    Image(systemName: isMyCodeExpanded ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.secondary)
+                            Spacer(minLength: 0)
+
+                            Image(systemName: "chevron.down")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                                .frame(width: 44, height: 44)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
                 }
             }
-            .buttonStyle(.plain)
 
             if isMyCodeExpanded {
                 QRImage(text: vm.myCode)
@@ -195,31 +236,66 @@ struct CompatibilityAnalysisView: View {
 
     private var partnerCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Button {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    isPartnerExpanded.toggle()
-                }
-            } label: {
-                HStack(spacing: 10) {
-                    Image(systemName: "person.badge.plus")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(Color(hex: 0x2563EB))
-                        .frame(width: 30, height: 30)
-                        .background(Color(hex: 0x2563EB).opacity(0.12))
-                        .clipShape(Circle())
+            Group {
+                if isPartnerExpanded {
+                    HStack(spacing: 10) {
+                        Image(systemName: "person.badge.plus")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(Color(hex: 0x2563EB))
+                            .frame(width: 30, height: 30)
+                            .background(Color(hex: 0x2563EB).opacity(0.12))
+                            .clipShape(Circle())
 
-                    Text("Karşı Taraf")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(.primary)
+                        Text("Karşı Taraf")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundStyle(.primary)
 
-                    Spacer()
+                        Spacer(minLength: 0)
 
-                    Image(systemName: isPartnerExpanded ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.secondary)
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                isPartnerExpanded = false
+                            }
+                        } label: {
+                            Image(systemName: "chevron.up")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                                .frame(width: 44, height: 44)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                } else {
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            isPartnerExpanded = true
+                        }
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: "person.badge.plus")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(Color(hex: 0x2563EB))
+                                .frame(width: 30, height: 30)
+                                .background(Color(hex: 0x2563EB).opacity(0.12))
+                                .clipShape(Circle())
+
+                            Text("Karşı Taraf")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundStyle(.primary)
+
+                            Spacer(minLength: 0)
+
+                            Image(systemName: "chevron.down")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                                .frame(width: 44, height: 44)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
                 }
             }
-            .buttonStyle(.plain)
 
             if isPartnerExpanded {
                 Text("Uyumunu ölçmek istediğin kişiyi seç")
