@@ -282,4 +282,21 @@ final class CompatibilityAnalysisResultViewModel: ObservableObject {
 
         receivedRating = latest ?? output.receivedRating
     }
+
+    /// Kayıt sonrası `output.myRating` bellekte güncellenmeyebilir; geçmiş satırından tamamla.
+    var resolvedMyOverallScore: Int? {
+        if let m = output.myRating { return m.overallScore }
+        let items = CompatibilityHistoryStore.load()
+        if let hid = output.historyId, let row = items.first(where: { $0.id == hid }) {
+            return row.myRating?.overallScore
+        }
+        let key = output.partnerQuery.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !key.isEmpty else { return nil }
+        return items
+            .filter { $0.partnerQuery.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == key }
+            .sorted { $0.createdAt > $1.createdAt }
+            .first?
+            .myRating?
+            .overallScore
+    }
 }

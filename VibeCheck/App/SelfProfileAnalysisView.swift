@@ -35,19 +35,19 @@ struct SelfProfileAnalysisView: View {
                     if let errorText {
                         Text(errorText)
                             .font(.system(size: 15))
-                            .foregroundStyle(Color(hex: 0xBA1A1A))
+                            .foregroundStyle(Color(hex: 0xB45309))
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(16)
                             .background(
                                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                    .fill(Color(hex: 0xFFDAD6).opacity(0.45))
+                                    .fill(Color(hex: 0xDBEAFE).opacity(0.45))
                             )
 
                         Button("Tekrar dene") {
                             Task { await loadInsight(force: true) }
                         }
                         .buttonStyle(.borderedProminent)
-                        .tint(Color(hex: 0xFF2D55))
+                        .tint(Color(hex: 0x3B82F6))
                         .frame(maxWidth: .infinity)
                     }
 
@@ -68,7 +68,7 @@ struct SelfProfileAnalysisView: View {
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
         .toolbarBackground(Color.clear, for: .navigationBar)
-        .tint(Color(hex: 0xE51245))
+        .tint(Color(hex: 0x2563EB))
         .safeAreaInset(edge: .bottom, spacing: 0) {
             Button {
                 hasEnteredMainApp = true
@@ -78,9 +78,9 @@ struct SelfProfileAnalysisView: View {
                     .foregroundStyle(Color.white)
                     .frame(maxWidth: .infinity)
                     .frame(minHeight: 56)
-                    .background(Color(hex: 0xFF2D55))
+                    .background(Color(hex: 0x3B82F6))
                     .clipShape(Capsule(style: .continuous))
-                    .shadow(color: Color(hex: 0xFF2D55).opacity(0.2), radius: 16, x: 0, y: 8)
+                    .shadow(color: Color(hex: 0x3B82F6).opacity(0.2), radius: 16, x: 0, y: 8)
             }
             .padding(.horizontal, 20)
             .padding(.top, 12)

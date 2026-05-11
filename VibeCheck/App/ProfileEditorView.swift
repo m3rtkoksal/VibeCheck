@@ -36,7 +36,7 @@ struct ProfileEditorView: View {
                 profileEditorTabChrome
             }
         }
-        .tint(Color(hex: 0xE51245))
+        .tint(Color(hex: 0x2563EB))
         .navigationDestination(item: $selectedCategory) { category in
             AnswerView(
                 category: category,
@@ -280,7 +280,7 @@ struct ProfileEditorView: View {
                 } label: {
                     Image(systemName: "arrow.up.arrow.down.circle.fill")
                         .font(.system(size: 20, weight: .medium))
-                        .foregroundStyle(Color(hex: 0xE51245))
+                        .foregroundStyle(.primary)
                         .frame(width: 40, height: 40)
                         .background(HarmonyPanelChrome.toolbarRoundGlass(diameter: 40, colorScheme: colorScheme))
                         .accessibilityLabel("Soru sırasını ters çevir")
@@ -419,11 +419,11 @@ private enum ProfileEditorScreenPalette {
         }
     }
 
-    /// Özel not — sıcak şeftali / terracotta
+    /// Özel not — vurgu (mavi ton)
     var privateNoteAccent: Color {
         switch self {
-        case .light: return Color(hex: 0x9A4026)
-        case .dark: return Color(hex: 0xE8A896)
+        case .light: return Color(hex: 0x1D4ED8)
+        case .dark: return Color(hex: 0x93C5FD)
         }
     }
 

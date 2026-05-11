@@ -94,7 +94,7 @@ struct AnswerView: View {
         return Text("VibeCheck")
             .font(.system(size: 20, weight: .heavy, design: .default))
             .tracking(-0.6)
-            .foregroundStyle(Color(hex: 0xE51245))
+            .foregroundStyle(.primary)
             .shadow(color: dark ? Color.black.opacity(0.55) : Color.black.opacity(0.22), radius: 0, x: 0, y: 1)
             .shadow(color: dark ? Color.black.opacity(0.35) : Color.black.opacity(0.08), radius: 2, x: 0, y: 0)
             .shadow(color: dark ? Color.white.opacity(0.12) : Color.clear, radius: 1, x: 0, y: -0.5)
@@ -104,10 +104,10 @@ struct AnswerView: View {
         HStack(spacing: 8) {
             Image(systemName: "brain.head.profile")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(Color(hex: 0xFF2D55))
+                .foregroundStyle(Color(hex: 0x3B82F6))
             Text("İlişki Dinamikleri")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(Color(hex: 0xFF2D55))
+                .foregroundStyle(Color(hex: 0x3B82F6))
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
@@ -166,19 +166,19 @@ struct AnswerView: View {
     }
 
     private var clearSelectionButton: some View {
-        Button(role: .destructive) {
+        Button {
             draftSelection = ""
         } label: {
             Text("Seçimi temizle")
                 .font(.system(size: 15, weight: .semibold))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
-                .foregroundStyle(Color(hex: 0xDC2626))
+                .foregroundStyle(Color(hex: 0xB45309))
                 .background(
                     HarmonyPanelChrome.secondaryTintedButtonBackground(
                         cornerRadius: 14,
                         colorScheme: colorScheme,
-                        tint: Color(hex: 0xDC2626)
+                        tint: Color(hex: 0xB45309)
                     )
                 )
         }
@@ -196,7 +196,7 @@ struct AnswerView: View {
                     Capsule()
                         .fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.08))
                     Capsule()
-                        .fill(Color(hex: 0xFF2D55))
+                        .fill(Color(hex: 0x3B82F6))
                         .frame(width: geo.size.width * progress)
                 }
             }
@@ -218,7 +218,7 @@ struct AnswerView: View {
             HStack(spacing: 12) {
                 Text("\(index)")
                     .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(selected ? Color(hex: 0xFF2D55) : Color.secondary)
+                    .foregroundStyle(selected ? Color(hex: 0x3B82F6) : Color.secondary)
                     .frame(width: 24)
 
                 Text(option)
@@ -230,7 +230,7 @@ struct AnswerView: View {
 
                 Image(systemName: selected ? "checkmark.circle.fill" : "circle")
                     .font(.system(size: 20, weight: .semibold))
-                    .foregroundStyle(selected ? Color(hex: 0xFF2D55) : Color(.tertiaryLabel))
+                    .foregroundStyle(selected ? Color(hex: 0x3B82F6) : Color(.tertiaryLabel))
             }
             .padding(.vertical, 14)
             .padding(.horizontal, 14)
@@ -242,7 +242,7 @@ struct AnswerView: View {
             .overlay(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .stroke(
-                        selected ? Color(hex: 0xFF2D55).opacity(0.52) : Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.07),
+                        selected ? Color(hex: 0x3B82F6).opacity(0.52) : Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.07),
                         lineWidth: selected ? 1.5 : 1
                     )
             )

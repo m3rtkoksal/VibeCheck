@@ -56,7 +56,7 @@ enum UserPushTokenSync {
         do {
             let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
             guard granted else { return }
-            await UIApplication.shared.registerForRemoteNotifications()
+            UIApplication.shared.registerForRemoteNotifications()
             refreshMessagingRegistration()
         } catch {
             NSLog("[Push] Bildirim izni alınamadı: %@", error.localizedDescription)
@@ -122,7 +122,7 @@ final class IncomingCompatibilityRatingsNotifier: ObservableObject {
     private var lastInboundDocuments: [QueryDocumentSnapshot] = []
 
     private init() {
-        Auth.auth().addStateDidChangeListener { [weak self] _, user in
+        _ = Auth.auth().addStateDidChangeListener { [weak self] _, user in
             Task { @MainActor in
                 guard let self else { return }
                 self.stopListeners()

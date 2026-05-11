@@ -57,7 +57,7 @@ struct ThemeSelectionView: View {
             applyDock
         }
         .toolbar(.hidden, for: .navigationBar)
-        .tint(Color(hex: 0xE51245))
+        .tint(Color(hex: 0x2563EB))
         .onAppear { pendingSelection = colorSchemePreference }
     }
 
@@ -108,7 +108,7 @@ struct ThemeSelectionView: View {
         return Text("Görünüm")
             .font(.system(size: 20, weight: .heavy, design: .default))
             .tracking(-0.5)
-            .foregroundStyle(Color(hex: 0xE51245))
+            .foregroundStyle(.primary)
             .shadow(color: dark ? Color.black.opacity(0.55) : Color.black.opacity(0.22), radius: 0, x: 0, y: 1)
             .shadow(color: dark ? Color.black.opacity(0.35) : Color.black.opacity(0.08), radius: 2, x: 0, y: 0)
             .shadow(color: dark ? Color.white.opacity(0.12) : Color.clear, radius: 1, x: 0, y: -0.5)
@@ -155,7 +155,7 @@ struct ThemeSelectionView: View {
                 HStack(spacing: 16) {
                     Image(systemName: symbol)
                         .font(.system(size: 20, weight: .medium))
-                        .foregroundStyle(Color(hex: 0xFF2D55))
+                        .foregroundStyle(Color(hex: 0x3B82F6))
                         .frame(width: 40, height: 40)
                         .background(HarmonyPanelChrome.toolbarRoundGlass(diameter: 40, colorScheme: colorScheme))
 
@@ -167,7 +167,7 @@ struct ThemeSelectionView: View {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 22, weight: .medium))
                         .foregroundStyle(
-                            pendingSelection == value ? Color(hex: 0xE51245) : Color.clear
+                            pendingSelection == value ? Color(hex: 0x2563EB) : Color.clear
                         )
                         .accessibilityHidden(true)
                 }
@@ -246,8 +246,8 @@ private enum ThemeSelectionPalette {
 
     var onSurfaceVariant: Color {
         switch self {
-        case .light: return Color(hex: 0x5D3F40)
-        case .dark: return Color(hex: 0xCAB8B9)
+        case .light: return Color(hex: 0x475569)
+        case .dark: return Color(hex: 0x94A3B8)
         }
     }
 

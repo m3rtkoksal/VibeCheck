@@ -10,7 +10,6 @@
 		08B6594CA4F1480A99399B37 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 9B2A98FC3D2864AAE07F41D8 /* Lottie */; };
 		1B726C39C3AFFB15E53DF09D /* VibeCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = D24B5A53254B86F7E561F60B /* VibeCode.swift */; };
 		1C961A38A4E435EDD09E86C3 /* LottieAnimationPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DA3D7AE702C22A7DEC23195 /* LottieAnimationPlayer.swift */; };
-		1E6E65E583C508F267047550 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8326276D0350537109A7451E /* MainTabView.swift */; };
 		1E9D61AF4C1F33EAE0376243 /* LoginViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40511D66B25E65DB21ACB283 /* LoginViewModel.swift */; };
 		1FE222C31CF7365560192D30 /* ProfilePhotoStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9957680C0FDCD4B5759272A5 /* ProfilePhotoStore.swift */; };
 		219236C5575F1CFC74CE659D /* SelfProfileInsightStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 440810A40846CA21F94F7E90 /* SelfProfileInsightStore.swift */; };
@@ -80,7 +79,6 @@
 		7573CE8386B88B4290F41212 /* SelfProfileInsightSections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelfProfileInsightSections.swift; sourceTree = "<group>"; };
 		75F9334D08B9071620854DC9 /* VibeCheck.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VibeCheck.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7F753DD1447B3215E3680AAC /* VibeCheck.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = VibeCheck.entitlements; sourceTree = "<group>"; };
-		8326276D0350537109A7451E /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		8B09809B8DEA1E61645B1CF0 /* QRImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRImage.swift; sourceTree = "<group>"; };
 		8D86609B4CA8F9578296C074 /* SettingsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTabView.swift; sourceTree = "<group>"; };
 		916C3392BA3BF9597A1FA246 /* PrivateNoteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivateNoteView.swift; sourceTree = "<group>"; };
@@ -119,6 +117,11 @@
 			path = CompabilityAnalysis;
 			sourceTree = "<group>";
 		};
+		B8392A042F9144AA00EEBE01 /* MainTabView */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = MainTabView;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -153,7 +156,7 @@
 				0CE588AA5B7EF3B30BE543E2 /* FriendlyCallableError.swift */,
 				A1B2C3D42F91000000000002 /* HarmonyPanelChrome.swift */,
 				6DA3D7AE702C22A7DEC23195 /* LottieAnimationPlayer.swift */,
-				8326276D0350537109A7451E /* MainTabView.swift */,
+				B8392A042F9144AA00EEBE01 /* MainTabView */,
 				E4E5F9012F90500000000002 /* MeshAuroraBackgroundView.swift */,
 				F71BC7E3BE688CDB57AF538D /* OnboardingView.swift */,
 				93B3E0032F90410000000002 /* IncomingCompatibilityRatingsInboxView.swift */,
@@ -258,6 +261,7 @@
 			fileSystemSynchronizedGroups = (
 				A60882682FAD4D8500F5BBEE /* CompatibilityAnalysisResultView */,
 				A66B206A2FAD35AE002F2E59 /* CompabilityAnalysis */,
+				B8392A042F9144AA00EEBE01 /* MainTabView */,
 			);
 			name = VibeCheck;
 			packageProductDependencies = (
@@ -337,7 +341,6 @@
 				43100C80A1BB8245F0832F40 /* LoginView.swift in Sources */,
 				1E9D61AF4C1F33EAE0376243 /* LoginViewModel.swift in Sources */,
 				1C961A38A4E435EDD09E86C3 /* LottieAnimationPlayer.swift in Sources */,
-				1E6E65E583C508F267047550 /* MainTabView.swift in Sources */,
 				E4E5F9012F90500000000001 /* MeshAuroraBackgroundView.swift in Sources */,
 				2A486D7B7FADEE6252C0727E /* OnboardingView.swift in Sources */,
 				C7BCA7DBB05CBFBFA18DF626 /* PrivateNoteView.swift in Sources */,
@@ -376,7 +379,7 @@
 				CODE_SIGN_ENTITLEMENTS = VibeCheck/VibeCheck.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 1;
 				DEPLOYMENT_POSTPROCESSING = NO;
 				DEVELOPMENT_TEAM = 79G38KD48M;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -392,7 +395,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.4;
+				MARKETING_VERSION = 1.0.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mikatech.vibecheck.ios;
 				PRODUCT_NAME = VibeCheck;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -530,7 +533,7 @@
 				CODE_SIGN_ENTITLEMENTS = VibeCheck/VibeCheck.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 1;
 				DEPLOYMENT_POSTPROCESSING = NO;
 				DEVELOPMENT_TEAM = 79G38KD48M;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -546,7 +549,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.4;
+				MARKETING_VERSION = 1.0.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mikatech.vibecheck.ios;
 				PRODUCT_NAME = VibeCheck;
 				PROVISIONING_PROFILE_SPECIFIER = "";

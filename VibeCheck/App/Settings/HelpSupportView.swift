@@ -124,7 +124,7 @@ struct HelpSupportView: View {
                 .accessibilityLabel("Aramayı aç")
             }
         }
-        .tint(Color(hex: 0xE51245))
+        .tint(Color(hex: 0x2563EB))
     }
 
     private var helpToolbarTitle: some View {
@@ -132,7 +132,7 @@ struct HelpSupportView: View {
         return Text("Destek")
             .font(.system(size: 20, weight: .heavy, design: .default))
             .tracking(-0.5)
-            .foregroundStyle(Color(hex: 0xE51245))
+            .foregroundStyle(.primary)
             .shadow(color: dark ? Color.black.opacity(0.55) : Color.black.opacity(0.22), radius: 0, x: 0, y: 1)
             .shadow(color: dark ? Color.black.opacity(0.35) : Color.black.opacity(0.08), radius: 2, x: 0, y: 0)
             .shadow(color: dark ? Color.white.opacity(0.12) : Color.clear, radius: 1, x: 0, y: -0.5)
@@ -194,7 +194,7 @@ struct HelpSupportView: View {
             VStack(alignment: .leading, spacing: HelpSupportSpacing.sm) {
                 Image(systemName: topic.systemImageName)
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(Color(hex: 0xFF2D55))
+                    .foregroundStyle(Color(hex: 0x3B82F6))
                     .frame(width: 40, height: 40)
                     .background(HarmonyPanelChrome.toolbarRoundGlass(diameter: 40, colorScheme: colorScheme))
                     .padding(.bottom, 2)
@@ -224,7 +224,7 @@ struct HelpSupportView: View {
             .overlay(
                 RoundedRectangle(cornerRadius: HelpSupportRadii.twoXL, style: .continuous)
                     .stroke(
-                        isSelected ? Color(hex: 0xE51245).opacity(colorScheme == .dark ? 0.85 : 0.55) : Color.clear,
+                        isSelected ? Color(hex: 0x2563EB).opacity(colorScheme == .dark ? 0.85 : 0.55) : Color.clear,
                         lineWidth: isSelected ? 2 : 0
                     )
             )
@@ -279,7 +279,7 @@ struct HelpSupportView: View {
                 .foregroundStyle(palette.onSurface)
                 .multilineTextAlignment(.leading)
         }
-        .tint(Color(hex: 0xE51245))
+        .tint(Color(hex: 0x2563EB))
         .padding(HelpSupportSpacing.md)
         .background(
             HarmonyPanelChrome.panelBackdrop(
@@ -301,7 +301,7 @@ struct HelpSupportView: View {
         VStack(spacing: HelpSupportSpacing.md) {
             Image(systemName: "bubble.left.and.bubble.right.fill")
                 .font(.system(size: 26, weight: .medium))
-                .foregroundStyle(Color(hex: 0xE51245))
+                .foregroundStyle(.primary)
                 .frame(width: 56, height: 56)
                 .background(HarmonyPanelChrome.toolbarRoundGlass(diameter: 56, colorScheme: colorScheme))
 
@@ -318,7 +318,7 @@ struct HelpSupportView: View {
                 if copiedEmailBanner {
                     Text("Destek adresi panoya kopyalandı.")
                         .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(Color(hex: 0xE51245))
+                        .foregroundStyle(.secondary)
                         .padding(.top, HelpSupportSpacing.xs)
                 }
             }
@@ -347,7 +347,7 @@ struct HelpSupportView: View {
                     Text(Self.supportEmail)
                         .font(.system(size: 14, weight: .medium))
                         .foregroundStyle(
-                            colorScheme == .dark ? Color(hex: 0xFFB3B5) : Color(hex: 0xE51245)
+                            colorScheme == .dark ? Color(hex: 0x93C5FD) : Color(hex: 0x2563EB)
                         )
                         .underline()
                 }
@@ -367,7 +367,7 @@ struct HelpSupportView: View {
                     .fill(
                         LinearGradient(
                             colors: [
-                                Color(hex: 0xFF2D55).opacity(colorScheme == .dark ? 0.16 : 0.1),
+                                Color(hex: 0x3B82F6).opacity(colorScheme == .dark ? 0.16 : 0.1),
                                 Color(hex: 0x7C3AED).opacity(colorScheme == .dark ? 0.06 : 0.04),
                                 Color.clear,
                             ],
@@ -471,8 +471,8 @@ private enum HelpSupportPalette {
 
     var onSurfaceVariant: Color {
         switch self {
-        case .light: return Color(hex: 0x5D3F40)
-        case .dark: return Color(hex: 0xE6BCBD)
+        case .light: return Color(hex: 0x475569)
+        case .dark: return Color(hex: 0x94A3B8)
         }
     }
 }

@@ -147,7 +147,7 @@ struct PrivateNoteView: View {
         return Text("VibeCheck")
             .font(.system(size: 20, weight: .heavy, design: .default))
             .tracking(-0.6)
-            .foregroundStyle(Color(hex: 0xE51245))
+            .foregroundStyle(.primary)
             .shadow(color: dark ? Color.black.opacity(0.55) : Color.black.opacity(0.22), radius: 0, x: 0, y: 1)
             .shadow(color: dark ? Color.black.opacity(0.35) : Color.black.opacity(0.08), radius: 2, x: 0, y: 0)
             .shadow(color: dark ? Color.white.opacity(0.12) : Color.clear, radius: 1, x: 0, y: -0.5)
@@ -164,7 +164,7 @@ struct PrivateNoteView: View {
                     Capsule()
                         .fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.08))
                     Capsule()
-                        .fill(Color(hex: 0xFF2D55))
+                        .fill(Color(hex: 0x3B82F6))
                         .frame(width: geo.size.width)
                 }
             }
@@ -200,7 +200,7 @@ struct PrivateNoteView: View {
                         .fontWeight(.semibold)
                 }
                 .font(.system(size: 15))
-                .foregroundStyle(Color(hex: 0xFF2D55))
+                .foregroundStyle(Color(hex: 0x3B82F6))
                 .frame(maxWidth: .infinity)
                 .frame(height: 44)
                 .background(
@@ -235,7 +235,7 @@ struct PrivateNoteView: View {
                 } label: {
                     Image(systemName: speech.isRecording ? "stop.circle.fill" : "mic.fill")
                         .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(speech.isRecording ? Color(hex: 0xFF2D55) : .secondary)
+                        .foregroundStyle(speech.isRecording ? Color(hex: 0x3B82F6) : .secondary)
                         .frame(width: 42, height: 42)
                         .background(HarmonyPanelChrome.toolbarRoundGlass(diameter: 42, colorScheme: colorScheme))
                 }

@@ -26,7 +26,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate, MessagingDelegate,
         #endif
 
         // FCM token çoğu zaman girişten önce gelir; oturum açılınca yeniden kaydedilsin.
-        Auth.auth().addStateDidChangeListener { _, user in
+        _ = Auth.auth().addStateDidChangeListener { _, user in
             if user != nil {
                 UserPushTokenSync.refreshMessagingRegistration()
             }

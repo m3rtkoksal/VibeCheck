@@ -233,9 +233,10 @@ struct SettingsDetailView: View {
                         .foregroundStyle(.green)
                     Text(vm.phoneNumber.isEmpty ? "Doğrulandı" : vm.phoneNumber)
                 }
-                Button("Telefon doğrulamasını kaldır", role: .destructive) {
+                Button("Telefon doğrulamasını kaldır") {
                     Task { await vm.unlinkPhone() }
                 }
+                .foregroundStyle(Color(hex: 0xB45309))
             } else {
                 TextField("Örn. +90 5xx xxx xx xx", text: $vm.phoneNumber)
                     .keyboardType(.phonePad)
@@ -278,9 +279,10 @@ struct SettingsDetailView: View {
                         .foregroundStyle(.green)
                     Text(vm.xUsername.isEmpty ? "X doğrulandı" : "@\(vm.xUsername)")
                 }
-                Button("X bağlantısını kaldır", role: .destructive) {
+                Button("X bağlantısını kaldır") {
                     Task { await vm.unlinkTwitter() }
                 }
+                .foregroundStyle(Color(hex: 0xB45309))
             } else {
                 Button("X (Twitter) ile doğrula") {
                     Task { await vm.linkTwitter() }
@@ -337,7 +339,7 @@ struct SettingsDetailView: View {
                         .frame(width: 36, height: 36)
                         .background(Color(.systemBackground).opacity(0.001))
                         .contentShape(Rectangle())
-                        .foregroundStyle(Color(hex: 0xFF2D55))
+                        .foregroundStyle(Color(hex: 0x3B82F6))
                 }
 
                 Spacer()
@@ -364,7 +366,7 @@ struct SettingsDetailView: View {
                     avatarViewLarge
 
                     ZStack {
-                        Circle().fill(Color(hex: 0xFF2D55))
+                        Circle().fill(Color(hex: 0x3B82F6))
                         Image(systemName: "camera.fill")
                             .font(.system(size: 16, weight: .bold))
                             .foregroundStyle(.white)
@@ -380,7 +382,7 @@ struct SettingsDetailView: View {
             } label: {
                 Text("Fotoğrafı Değiştir")
                     .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(Color(hex: 0xFF2D55))
+                    .foregroundStyle(Color(hex: 0x3B82F6))
             }
             .buttonStyle(.plain)
         }
@@ -416,7 +418,7 @@ struct SettingsDetailView: View {
                 }
                 Divider().opacity(0.35).padding(.leading, 16 + 24 + 12)
 
-                sheetRow(icon: "trash.fill", title: "Mevcut Fotoğrafı Kaldır", titleColor: .red) {
+                sheetRow(icon: "trash.fill", title: "Mevcut Fotoğrafı Kaldır", destructive: true) {
                     profileUIImage = nil
                     do {
                         try ProfilePhotoStore.remove()
@@ -454,19 +456,19 @@ struct SettingsDetailView: View {
     private func sheetRow(
         icon: String,
         title: String,
-        titleColor: Color = .primary,
+        destructive: Bool = false,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
             HStack(spacing: 12) {
                 Image(systemName: icon)
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(titleColor == .red ? .red : Color(hex: 0xFF2D55))
+                    .foregroundStyle(destructive ? Color(hex: 0xB45309) : Color(hex: 0x3B82F6))
                     .frame(width: 24)
 
                 Text(title)
                     .font(.system(size: 17, weight: .regular))
-                    .foregroundStyle(titleColor)
+                    .foregroundStyle(destructive ? Color(hex: 0xB45309) : .primary)
 
                 Spacer()
 
@@ -634,7 +636,7 @@ struct SettingsDetailView: View {
                         .font(.system(size: 18, weight: .bold))
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity, minHeight: 56)
-                        .background(Color(hex: 0xFF2D55))
+                        .background(Color(hex: 0x3B82F6))
                         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                         .shadow(color: Color.black.opacity(0.06), radius: 16, x: 0, y: 10)
                 }

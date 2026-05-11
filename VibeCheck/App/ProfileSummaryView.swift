@@ -28,7 +28,7 @@ struct ProfileSummaryView: View {
         .navigationTitle("Hazırsın")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color.clear, for: .navigationBar)
-        .tint(Color(hex: 0xE51245))
+        .tint(Color(hex: 0x2563EB))
         .onAppear {
             // Prefer fresh values; fixes empty summary when destination was constructed early.
             let fresh = ProfileEditorView.selectionsDictionary()
@@ -75,7 +75,7 @@ struct ProfileSummaryView: View {
                 Text("Senin Profilin")
                     .font(.system(size: 30, weight: .heavy))
                     .tracking(-0.6)
-                    .foregroundStyle(Color(hex: 0xE51245))
+                    .foregroundStyle(.primary)
                     .multilineTextAlignment(.center)
                     .shadow(color: summaryHeroShadowOuter, radius: 0, x: 0, y: 1)
                     .shadow(color: summaryHeroShadowMid, radius: 4, x: 0, y: 2)

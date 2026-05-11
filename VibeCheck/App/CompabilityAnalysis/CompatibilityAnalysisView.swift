@@ -39,12 +39,12 @@ struct CompatibilityAnalysisView: View {
                         if let errorText = vm.errorText {
                             Text(errorText)
                                 .font(.footnote)
-                                .foregroundStyle(.red)
+                                .foregroundStyle(Color(hex: 0xB45309))
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(14)
                                 .background(
                                     RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .fill(Color.red.opacity(0.08))
+                                        .fill(Color(hex: 0xB45309).opacity(0.08))
                                 )
                         }
                     }
@@ -136,9 +136,9 @@ struct CompatibilityAnalysisView: View {
                 HStack(spacing: 10) {
                     Image(systemName: "qrcode")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(Color(hex: 0xFF2D55))
+                        .foregroundStyle(Color(hex: 0x3B82F6))
                         .frame(width: 30, height: 30)
-                        .background(Color(hex: 0xFF2D55).opacity(0.12))
+                        .background(Color(hex: 0x3B82F6).opacity(0.12))
                         .clipShape(Circle())
 
                     VStack(alignment: .leading, spacing: 2) {
@@ -175,7 +175,7 @@ struct CompatibilityAnalysisView: View {
                             .fontWeight(.semibold)
                     }
                     .font(.system(size: 15))
-                    .foregroundStyle(Color(hex: 0xFF2D55))
+                    .foregroundStyle(Color(hex: 0x3B82F6))
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
                     .background(
@@ -256,7 +256,7 @@ struct CompatibilityAnalysisView: View {
                             .fontWeight(.semibold)
                     }
                     .font(.system(size: 15))
-                    .foregroundStyle(Color(hex: 0xFF2D55))
+                    .foregroundStyle(Color(hex: 0x3B82F6))
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
                     .background(

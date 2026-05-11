@@ -41,7 +41,7 @@ struct ProfileCharacterInsightView: View {
                 profileInsightScroll
             }
         }
-        .tint(Color(hex: 0xE51245))
+        .tint(Color(hex: 0x2563EB))
         .toolbar(.hidden, for: .navigationBar)
         .navigationBarBackButtonHidden(true)
         .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -171,7 +171,7 @@ struct ProfileCharacterInsightView: View {
         Text("Karakter Özetin")
             .font(.system(size: 19, weight: .heavy, design: .default))
             .tracking(-0.45)
-            .foregroundStyle(Color(hex: 0xE51245))
+            .foregroundStyle(.primary)
             .lineLimit(1)
             .minimumScaleFactor(0.82)
             .shadow(color: insightNavTitleShadowPrimary, radius: 0, x: 0, y: 1)
@@ -309,22 +309,22 @@ private enum CharacterInsightChromePalette {
 
     var secondaryLabel: Color {
         switch self {
-        case .light: return Color(hex: 0x5D3F40).opacity(0.85)
-        case .dark: return Color(hex: 0xCAB8B9)
+        case .light: return Color(hex: 0x475569).opacity(0.85)
+        case .dark: return Color(hex: 0x94A3B8)
         }
     }
 
     var bannerText: Color {
         switch self {
-        case .light: return Color(hex: 0x4A2F30)
-        case .dark: return Color(hex: 0xF3E9EA)
+        case .light: return Color(hex: 0x334155)
+        case .dark: return Color(hex: 0xE2E8F0)
         }
     }
 
-    static let bannerFill = Color(hex: 0xFFF4ED)
-    static let bannerStroke = Color(hex: 0xFFB86C).opacity(0.55)
-    static let errorInk = Color(hex: 0xBA1A1A)
-    static let errorContainerFill = Color(hex: 0xFFDAD6)
+    static let bannerFill = Color(hex: 0xEFF6FF)
+    static let bannerStroke = Color(hex: 0x93C5FD).opacity(0.45)
+    static let errorInk = Color(hex: 0xB45309)
+    static let errorContainerFill = Color(hex: 0xDBEAFE)
 }
 
 private struct ProfileInsightPrimaryTapStyle: ButtonStyle {

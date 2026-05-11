@@ -41,7 +41,7 @@ struct SubscriptionManagementView: View {
         .navigationTitle("Abonelik Yönetimi")
         .navigationBarTitleDisplayMode(.large)
         .toolbarBackground(Color.clear, for: .navigationBar)
-        .tint(Color(hex: 0xE51245))
+        .tint(Color(hex: 0x2563EB))
         .overlay(alignment: .top) {
             if notifyFeedback {
                 notifyToast
@@ -78,7 +78,7 @@ struct SubscriptionManagementView: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color(hex: 0xFF2D55),
+                            Color(hex: 0x3B82F6),
                             Color(red: 1, green: 0.71, blue: 0.76),
                         ],
                         startPoint: .topLeading,
@@ -211,7 +211,7 @@ struct SubscriptionManagementView: View {
 
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 28, weight: .medium))
-                            .foregroundStyle(Color(hex: 0xFF2D55))
+                            .foregroundStyle(Color(hex: 0x3B82F6))
                     }
                 }
 
@@ -234,7 +234,7 @@ struct SubscriptionManagementView: View {
         }
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .shadow(
-            color: Color(hex: 0xFF2D55).opacity(colorScheme == .dark ? 0.35 : 0.42),
+            color: Color(hex: 0x3B82F6).opacity(colorScheme == .dark ? 0.35 : 0.42),
             radius: 28,
             x: 0,
             y: 14
@@ -310,7 +310,7 @@ struct SubscriptionManagementView: View {
                 plusGlassCell(
                     icon: "headphones.circle.fill",
                     title: "Öncelikli destek",
-                    iconForeground: Color(hex: 0xFF2D55)
+                    iconForeground: Color(hex: 0x3B82F6)
                 )
             }
 
@@ -435,23 +435,23 @@ private enum SubscriptionPalette {
 
     var onSurfaceVariant: Color {
         switch self {
-        case .light: return Color(hex: 0x5D3F40)
-        case .dark: return Color(hex: 0xE6BCBD)
+        case .light: return Color(hex: 0x475569)
+        case .dark: return Color(hex: 0x94A3B8)
         }
     }
 
-    /// Premium kart gradient (135deg #FF2D55 → #ba0034)
+    /// Premium kart gradient (mavi tonlar)
     var premiumGradient: [Color] {
         switch self {
         case .light:
             return [
-                Color(hex: 0xFF2D55),
-                Color(hex: 0xBA0034),
+                Color(hex: 0x3B82F6),
+                Color(hex: 0x1D4ED8),
             ]
         case .dark:
             return [
-                Color(hex: 0xFF2D55).opacity(0.96),
-                Color(hex: 0x8F0029),
+                Color(hex: 0x3B82F6).opacity(0.96),
+                Color(hex: 0x1E3A8A),
             ]
         }
     }

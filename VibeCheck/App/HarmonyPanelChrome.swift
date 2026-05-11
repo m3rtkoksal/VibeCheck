@@ -11,7 +11,7 @@ enum HarmonyPanelChrome {
                     Color(hex: 0xFFFFFF).opacity(0.62),
                     Color(hex: 0xDDD6FE).opacity(0.45),
                     Color(hex: 0xBAE6FD).opacity(0.4),
-                    Color(hex: 0xFFF1F9).opacity(0.55),
+                    Color(hex: 0xEFF6FF).opacity(0.55),
                   ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
@@ -42,7 +42,7 @@ enum HarmonyPanelChrome {
     static func secondaryTintedButtonBackground(
         cornerRadius: CGFloat = 12,
         colorScheme: ColorScheme,
-        tint: Color = Color(hex: 0xFF2D55)
+        tint: Color = Color(hex: 0x3B82F6)
     ) -> some View {
         let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
         return ZStack {
@@ -60,8 +60,8 @@ enum HarmonyPanelChrome {
             shape.fill(
                 LinearGradient(
                     colors: [
-                        Color(hex: 0xFF3B6E),
-                        Color(hex: 0xE51245),
+                        Color(hex: 0x60A5FA),
+                        Color(hex: 0x2563EB),
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing

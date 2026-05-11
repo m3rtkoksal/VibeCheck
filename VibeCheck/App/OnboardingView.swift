@@ -39,7 +39,7 @@ struct OnboardingView: View {
                 onboardingBottomBar
             }
         }
-        .tint(Color(hex: 0xE51245))
+        .tint(Color(hex: 0x2563EB))
     }
 
     private func onboardingSlide(page: OnboardingPage) -> some View {
@@ -52,7 +52,7 @@ struct OnboardingView: View {
                 Text(page.title)
                     .font(.system(size: 26, weight: .heavy))
                     .tracking(-0.5)
-                    .foregroundStyle(Color(hex: 0xE51245))
+                    .foregroundStyle(.primary)
                     .multilineTextAlignment(.center)
                     .shadow(color: onboardingTitleShadowOuter, radius: 0, x: 0, y: 1)
                     .shadow(color: onboardingTitleShadowMid, radius: 3, x: 0, y: 1)
@@ -78,7 +78,7 @@ struct OnboardingView: View {
     private func onboardingHeroIcon(systemName: String) -> some View {
         ZStack {
             Circle()
-                .fill(Color(hex: 0xFF2D55).opacity(colorScheme == .dark ? 0.14 : 0.1))
+                .fill(Color(hex: 0x3B82F6).opacity(colorScheme == .dark ? 0.14 : 0.1))
                 .frame(width: 180, height: 180)
                 .blur(radius: 28)
 
@@ -89,14 +89,14 @@ struct OnboardingView: View {
 
                 Circle()
                     .strokeBorder(
-                        Color(hex: 0xE51245).opacity(colorScheme == .dark ? 0.42 : 0.28),
+                        Color(hex: 0x2563EB).opacity(colorScheme == .dark ? 0.42 : 0.28),
                         lineWidth: 2
                     )
                     .frame(width: 132, height: 132)
 
                 Image(systemName: systemName)
                     .font(.system(size: 52, weight: .semibold))
-                    .foregroundStyle(Color(hex: 0xFF2D55))
+                    .foregroundStyle(Color(hex: 0x3B82F6))
             }
             .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme), radius: 14, x: 0, y: 8)
         }

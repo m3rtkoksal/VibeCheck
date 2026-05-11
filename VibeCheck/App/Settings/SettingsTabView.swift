@@ -131,7 +131,7 @@ struct SettingsTabView: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color(hex: 0xFF2D55),
+                            Color(hex: 0x3B82F6),
                             Color(red: 1, green: 0.71, blue: 0.76),
                         ],
                         startPoint: .topLeading,
@@ -234,7 +234,7 @@ struct SettingsTabView: View {
             }
             .buttonStyle(SettingsCardPressStyle(scale: 0.98))
 
-            Button(role: .destructive) {
+            Button {
                 signOut()
             } label: {
                 signOutCard
@@ -258,14 +258,14 @@ struct SettingsTabView: View {
         HStack(spacing: 16) {
             Image(systemName: symbol)
                 .font(.system(size: symbolPointSize, weight: .semibold))
-                .foregroundStyle(Color(hex: 0xFF2D55))
+                .foregroundStyle(Color(hex: 0x3B82F6))
                 .frame(width: 56, height: 56)
                 .background(
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
                         .fill(Material.ultraThinMaterial)
                         .overlay {
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(Color(hex: 0xFF2D55).opacity(colorScheme == .dark ? 0.14 : 0.1))
+                                .fill(Color(hex: 0x3B82F6).opacity(colorScheme == .dark ? 0.14 : 0.1))
                         }
                         .overlay {
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
@@ -315,19 +315,19 @@ struct SettingsTabView: View {
         HStack(spacing: 16) {
             Image(systemName: "rectangle.portrait.and.arrow.right.fill")
                 .font(.system(size: 26, weight: .semibold))
-                .foregroundStyle(Color(hex: 0xBA1A1A))
+                .foregroundStyle(Color(hex: 0xB45309))
                 .frame(width: 56, height: 56)
                 .background(
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
                         .fill(Material.ultraThinMaterial)
                         .overlay {
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(Color(hex: 0xBA1A1A).opacity(colorScheme == .dark ? 0.18 : 0.08))
+                                .fill(Color(hex: 0xB45309).opacity(colorScheme == .dark ? 0.18 : 0.08))
                         }
                         .overlay {
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
                                 .strokeBorder(
-                                    Color(hex: 0xBA1A1A).opacity(colorScheme == .dark ? 0.35 : 0.28),
+                                    Color(hex: 0xB45309).opacity(colorScheme == .dark ? 0.35 : 0.28),
                                     lineWidth: 1
                                 )
                         }
@@ -335,7 +335,7 @@ struct SettingsTabView: View {
 
             Text("Çıkış Yap")
                 .font(.system(size: 17, weight: .medium))
-                .foregroundStyle(Color(hex: 0xBA1A1A))
+                .foregroundStyle(Color(hex: 0xB45309))
 
             Spacer(minLength: 8)
         }
@@ -346,7 +346,7 @@ struct SettingsTabView: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(Color(hex: 0xFFDAD6).opacity(colorScheme == .dark ? 0.42 : 0.55), lineWidth: 1)
+                .stroke(Color(hex: 0xDBEAFE).opacity(colorScheme == .dark ? 0.42 : 0.55), lineWidth: 1)
         )
         .foregroundStyle(Color.primary)
     }
@@ -432,8 +432,8 @@ private enum SettingsScreenPalette {
 
     var onSurfaceMuted: Color {
         switch self {
-        case .light: return Color(hex: 0x5D3F40)
-        case .dark: return Color(hex: 0xCAB8B9)
+        case .light: return Color(hex: 0x475569)
+        case .dark: return Color(hex: 0x94A3B8)
         }
     }
 }

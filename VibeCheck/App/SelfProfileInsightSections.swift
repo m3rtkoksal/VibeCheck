@@ -342,16 +342,16 @@ private enum CharacterInsightPalette {
 
     var onSurfaceVariant: Color {
         switch self {
-        case .light: return Color(hex: 0x5D3F40)
-        case .dark: return Color(hex: 0xE6BCBD)
+        case .light: return Color(hex: 0x475569)
+        case .dark: return Color(hex: 0x94A3B8)
         }
     }
 }
 
 private enum CharacterInsightCopy {
-    static let vibePink = Color(hex: 0xFF2D55)
+    static let vibePink = Color(hex: 0x3B82F6)
     static let secondaryContainer = Color(hex: 0x6664E4)
-    static let errorContainer = Color(hex: 0xFFDAD6)
+    static let errorContainer = Color(hex: 0xDBEAFE)
 
     static func traitDisplayTitle(for id: String) -> String {
         switch id.lowercased() {
@@ -366,12 +366,12 @@ private enum CharacterInsightCopy {
 
     static func traitBarFill(for id: String) -> Color {
         switch id.lowercased() {
-        case "introversion": return Color(hex: 0xFF2D55)
+        case "introversion": return Color(hex: 0x3B82F6)
         case "creativity": return Color(hex: 0x6664E4)
         case "logic": return Color(hex: 0x00855F)
-        case "empathy": return Color(hex: 0xFFB3B5)
+        case "empathy": return Color(hex: 0x93C5FD)
         case "ambition": return Color(hex: 0x4C4ACA)
-        default: return Color(hex: 0xFF2D55)
+        default: return Color(hex: 0x3B82F6)
         }
     }
 }

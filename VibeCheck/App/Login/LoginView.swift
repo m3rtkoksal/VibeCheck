@@ -16,7 +16,7 @@ struct LoginView: View {
             loginRoot
                 .toolbar(.hidden, for: .navigationBar)
         }
-        .tint(Color(hex: 0xE51245))
+        .tint(Color(hex: 0x2563EB))
         .disabled(vm.isBusy)
         .overlay {
             if vm.isBusy {
@@ -103,7 +103,7 @@ struct LoginView: View {
         Text("Giriş")
             .font(.system(size: 34, weight: .heavy))
             .tracking(-0.8)
-            .foregroundStyle(Color(hex: 0xE51245))
+            .foregroundStyle(.primary)
             .shadow(color: loginTitleShadowOuter, radius: 0, x: 0, y: 1)
             .shadow(color: loginTitleShadowMid, radius: 4, x: 0, y: 2)
             .shadow(color: loginTitleShadowHighlight, radius: 1, x: 0, y: -0.5)

@@ -9,13 +9,13 @@ private enum MeshPaletteFromLottie {
     private static let _cyan = Color(red: 0 / 255, green: 216 / 255, blue: 234 / 255)
     private static let _cyanNeon = Color(red: 0 / 255, green: 234 / 255, blue: 234 / 255)
     private static let _cyanBlue = Color(red: 0 / 255, green: 156 / 255, blue: 252 / 255)
-    private static let _hotMagenta = Color(red: 252 / 255, green: 0 / 255, blue: 72 / 255)
-    private static let _rosePulse = Color(red: 246 / 255, green: 5 / 255, blue: 98 / 255)
+    private static let _accentBlue = Color(red: 37 / 255, green: 99 / 255, blue: 235 / 255)
+    private static let _skyBlue = Color(red: 56 / 255, green: 189 / 255, blue: 248 / 255)
     private static let _violet = Color(red: 162 / 255, green: 0 / 255, blue: 216 / 255)
     private static let _indigo = Color(red: 121 / 255, green: 42 / 255, blue: 229 / 255)
     private static let _peri = Color(red: 77 / 255, green: 86 / 255, blue: 232 / 255)
-    /// Geçiş bölgesi (pembe‑mor ara ton)
-    private static let _wineMagenta = Color(red: 205 / 255, green: 41 / 255, blue: 151 / 255)
+    /// Geçiş bölgesi (mavi‑mor ara ton)
+    private static let _wineMagenta = Color(red: 99 / 255, green: 102 / 255, blue: 241 / 255)
 
     static func topFillBlob(dark: Bool) -> [Color] {
         dark ? [_indigo.opacity(0.62), _violet.opacity(0.42), .clear]
@@ -28,8 +28,8 @@ private enum MeshPaletteFromLottie {
     }
 
     static func magentaBlob(dark: Bool) -> [Color] {
-        dark ? [_hotMagenta.opacity(0.58), _rosePulse.opacity(0.45), .clear]
-            : [Color(red: 255 / 255, green: 58 / 255, blue: 130 / 255).opacity(0.48), .clear]
+        dark ? [_accentBlue.opacity(0.58), _skyBlue.opacity(0.45), .clear]
+            : [Color(red: 59 / 255, green: 130 / 255, blue: 246 / 255).opacity(0.48), .clear]
     }
 
     static func violetBlob(dark: Bool) -> [Color] {
@@ -44,7 +44,7 @@ private enum MeshPaletteFromLottie {
 
     static func magentaWineBlob(dark: Bool) -> [Color] {
         dark ? [_wineMagenta.opacity(0.5), _peri.opacity(0.35), .clear]
-            : [Color(red: 200 / 255, green: 90 / 255, blue: 170 / 255).opacity(0.32), .clear]
+            : [Color(red: 99 / 255, green: 102 / 255, blue: 241 / 255).opacity(0.32), .clear]
     }
 
     static func cyanHighlightBlob(dark: Bool) -> [Color] {
