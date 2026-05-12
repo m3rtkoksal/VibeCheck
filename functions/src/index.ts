@@ -63,8 +63,42 @@ const ORDERED_PROFILE_LABELS: Array<{id: string; title: string}> = [
   {id: "repairAfterConflict", title: "Küçük bir tartışma çıktı"},
   {id: "boundaryStyle", title: "Bir konuda kırıldın"},
   {id: "closenessNeed", title: "Yeni biriyle tanışıyorsun"},
-  {id: "jealousyTrigger", title: "Partnerin karşı cins biriyle sık görüşüyor"},
+  {
+    id: "jealousyTrigger",
+    title: "Partnerin karşı cins bir arkadaşıyla sık görüşüyor",
+  },
 ];
+
+/**
+ * Canonical option strings — must mirror iOS ProfileCategory.swift (v1).
+ */
+const PROFILE_AXIS_OPTIONS_V1: Record<string, readonly string[]> = {
+  messageTempo: [
+    "Pek umursamam, müsait değildir diye düşünürüm",
+    "Biraz merak ederim ama sorun etmem",
+    "Neden geç kaldığını sorgularım",
+  ],
+  repairAfterConflict: [
+    "Konuyu kapatıp uzaklaşırım",
+    "Sakinleşince konuşur çözmeye çalışırım",
+    "O an konuşup halletmek isterim",
+  ],
+  boundaryStyle: [
+    "Çok takmam, geçer",
+    "Uygun zamanda söylerim",
+    "İçimde kalır, kolay geçmez",
+  ],
+  closenessNeed: [
+    "Zamanla açılırım",
+    "Dengeli ilerlerim",
+    "Hızlı yakınlaşırım",
+  ],
+  jealousyTrigger: [
+    "Doğal karşılarım",
+    "Sınırlar önemli olur",
+    "Rahatsızlık hissederim",
+  ],
+};
 
 /**
  * Formats a profile snapshot into a stable, human-readable bullet list.
@@ -80,35 +114,61 @@ function prettySelections(snapshot: ProfileSnapshotV1): string {
 }
 
 /**
- * Computes deterministic overlap score from profile selections.
- * This protects the compatibility percent from becoming "flat"
- * when LLM output happens to repeat similar values.
+ * Per-axis score matching iOS `CompatibilityEngine.categoryScore`:
+ * same option = 1.0, adjacent index = 0.6, farther = 0.2.
  *
- * @param {ProfileSnapshotV1} me User snapshot.
- * @param {ProfileSnapshotV1} partner Partner snapshot.
- * @return {number} 0-100 overlap percentage.
+ * @param {string} axisId PROFILE_AXIS_OPTIONS_V1 key.
+ * @param {string} aRaw Answer A.
+ * @param {string} bRaw Answer B.
+ * @return {number | null} Unit score or null if missing.
+ */
+function axisCompatUnit(
+  axisId: string,
+  aRaw: string,
+  bRaw: string
+): number | null {
+  const options = PROFILE_AXIS_OPTIONS_V1[axisId];
+  if (!options?.length) return null;
+  const a = (aRaw ?? "").trim();
+  const b = (bRaw ?? "").trim();
+  if (!a || !b) return null;
+  const ai = options.indexOf(a);
+  const bi = options.indexOf(b);
+  // Legacy / unknown wording: degrade to coarse equality bump.
+  if (ai === -1 || bi === -1) {
+    if (a === b) return 0.92;
+    return 0.32;
+  }
+  const distance = Math.abs(ai - bi);
+  if (distance === 0) return 1;
+  if (distance === 1) return 0.6;
+  return 0.2;
+}
+
+/**
+ * Deterministic overlap percent from five profile axes (avg unit * 100).
+ *
+ * @param {ProfileSnapshotV1} me Caller profile.
+ * @param {ProfileSnapshotV1} partner Partner profile.
+ * @return {number} Integer percent 0–100.
  */
 function selectionOverlapPercent(
   me: ProfileSnapshotV1,
   partner: ProfileSnapshotV1
 ): number {
-  let comparable = 0;
-  let exactMatches = 0;
-
+  const units: number[] = [];
   for (const {id} of ORDERED_PROFILE_LABELS) {
-    const a = (me.selections[id] ?? "").trim();
-    const b = (partner.selections[id] ?? "").trim();
-    if (!a || !b) continue;
-    comparable += 1;
-    if (a === b) exactMatches += 1;
+    const u = axisCompatUnit(
+      id,
+      me.selections[id] ?? "",
+      partner.selections[id] ?? ""
+    );
+    if (u === null) continue;
+    units.push(u);
   }
-
-  // Relationship fit is not pure "same answer = good".
-  // Even with different answers, couples can be highly compatible.
-  // Keep overlap in a softer band and avoid harsh drops.
-  if (comparable === 0) return 70;
-  const matchRatio = exactMatches / comparable; // 0..1
-  return Math.round(58 + matchRatio * 34); // 58..92
+  if (units.length === 0) return 50;
+  const avgUnit = units.reduce((sum, x) => sum + x, 0) / units.length;
+  return clampPercent(Math.round(avgUnit * 100));
 }
 
 /**
@@ -329,20 +389,30 @@ export const analyzeCompatibility = onCall(
       );
     }
 
-    const system = [
+    const privateNote = (data.privateNote ?? "").trim();
+    const hasPrivateNote = privateNote.length > 0;
+
+    const systemParts = [
       "Sen bir ilişki uyumu analisti yardımcısısın.",
       "Yargılayıcı değil, kısa ve faydalı konuş.",
       "Çıktı kesin hüküm değil, eğilim analizi olsun.",
       "Türkçe yanıt ver.",
-    ].join(" ");
+    ];
+    if (hasPrivateNote) {
+      systemParts.push(
+        "Özel not yazıldığında: percent, strengths ve frictions bu notu " +
+          "doğrudan ve belirgin yansıtmalıdır; not yok sayılamaz."
+      );
+    }
+    const system = systemParts.join(" ");
 
-    const privateNote = (data.privateNote ?? "").trim();
     const privateNoteBlock =
-      privateNote.length > 0 ?
+      hasPrivateNote ?
         [
           "",
           "",
-          "Benim özel notum (kimsenin görmediği, sadece benim için):",
+          "Benim özel notum (kimsenin görmediği, sadece benim için — " +
+            "uyum yüzdesi ve maddeler bu bağlamı dikkate almalıdır):",
           privateNote,
           "",
         ].join("\n") :
@@ -402,6 +472,37 @@ export const analyzeCompatibility = onCall(
         "- private note varsa, sadece 'ben' tarafının içgörüsü olarak kullan;",
         " karşı taraf hakkında iddia üretme.",
       ].join(""),
+      ...(hasPrivateNote ?
+        [
+          [
+            "- ÖZEL NOT: percent yalnızca 5 sorunun 'otomatik çıkarımı' gibi ",
+            "davranmasın;",
+            " bu nottaki duygu, beklenen dinamik veya risk/olumluluk yüzdeyi ",
+            "anlamlı şekilde yukarı VEYA aşağı çeksin;",
+            " anket seçimleriyle çelişen bir not varsa yüzde ve sürtüşmeler ",
+            "bunu yansıtsın.",
+          ].join(""),
+          [
+            "- ÖZEL NOT: en az bir strength veya friction maddesi nottaki ",
+            "somut bir nüansı doğrudan ifade etsin;",
+            " summary notu özetlesin.",
+          ].join(""),
+        ] :
+        []),
+      [
+        "- percent: farklı profil kombinasyonlarında skor yayılımı ",
+        "geniş olsun;",
+        " yakın seçimleri sürekli tek bir yüzdede sıkıştırma;",
+        " (özellikle 68–77 arasında sık küme olarak).",
+      ].join(""),
+      [
+        "- Seçimler neredeyse veya tamamen örtüşüyorsa, sürtüşme az ise ",
+        "percent için 95–100 bandını yasaklama;",
+        " çok güçlü paralellikte tam 100 de verilebilir ",
+        "(abartı gerektirmeden).",
+      ].join(""),
+      "- percent seçimlerdeki paralellik / gerilimi yansıtsın;",
+      "- strengths veya frictions daha çok ise percent bununla uyumlu olsun.",
     ].join("\n");
 
     const jsonText = await callOpenAIJson({apiKey, system, user});
@@ -430,31 +531,54 @@ export const analyzeCompatibility = onCall(
       insight.icebreakers = fallbackIcebreakers(insight.strengths);
     }
 
-    // Blend model score with deterministic overlap from raw answers.
-    // Keep model weight higher so nuanced/complementary dynamics can surface.
+    // Özel not yoksa: seçimler biraz daha ağırlıklı (deterministik).
+    // Not varken: model çıktısı kullanıcı bağlamını yansıtır;
+    // daha yüksek ağırlık verilir.
     const overlapPercent = selectionOverlapPercent(me, partner);
     const modelPercent = clampPercent(insight.percent);
-    const blendedPercent = clampPercent(
-      modelPercent * 0.75 + overlapPercent * 0.25
+    const modelWeight =
+      privateNote.length === 0 ? 0.48 :
+        privateNote.length < 140 ? 0.62 :
+          0.72;
+    const overlapWeight = 1 - modelWeight;
+    let blendedPercent = clampPercent(
+      modelPercent * modelWeight + overlapPercent * overlapWeight
     );
-
-    // If strengths are not fewer than frictions, do not show overly low scores.
-    // This prevents healthy-but-different couples
-    // from receiving discouraging lows.
     const strengthsCount = insight.strengths.length;
     const frictionsCount = insight.frictions.length;
-    const softFloor = strengthsCount >= frictionsCount ? 72 : 62;
-    insight.percent = Math.min(96, Math.max(softFloor, blendedPercent));
+    // Seçimlerde 99%+ deterministik örtüşme varsa skor seçim uyumunun
+    // altına inmesin (model muhafazakar kalınca %100’a çıkamama).
+    const frictionDominates =
+      frictionsCount >= strengthsCount + 3 ||
+      (hasPrivateNote && frictionsCount > strengthsCount + 1);
+    if (overlapPercent >= 99 && !frictionDominates) {
+      blendedPercent = Math.max(blendedPercent, overlapPercent);
+    }
+
+    let finalPercent = Math.round(blendedPercent);
+    // Light narrative nudge ±4 from strength vs friction counts.
+    const deltaSf = strengthsCount - frictionsCount;
+    const narrativeNudge =
+      deltaSf >= 4 ? 4 :
+        deltaSf <= -4 ? -4 :
+          0;
+    finalPercent = clampPercent(finalPercent + narrativeNudge);
+
+    insight.percent = finalPercent;
 
     logger.info("Compatibility score blended", {
       uid: request.auth.uid,
       modelPercent,
-      blendedPercent,
-      softFloor,
+      modelWeight,
+      overlapWeight,
+      blendedPercent: Math.round(blendedPercent),
+      narrativeNudge,
       finalPercent: insight.percent,
       strengthsCount,
       frictionsCount,
       overlapPercent,
+      privateNoteChars: privateNote.length,
+      hasPrivateNote,
     });
 
     return insight;
@@ -530,8 +654,10 @@ export const analyzeSelfProfile = onCall(
       [
         "  \"summary\":",
         "\"Türkçe tek sürekli anlatım: seçimleri yansıtan özet;",
-        " ilişkiye yaklaşım, iletişim, sınırlar, yakınlık ihtiyacı gibi temaları",
-        " ayrı bölüm YAZMADAN bu metinde doğal tek akışta veya kısa maddeler içinde;",
+        " ilişkiye yaklaşım, iletişim, sınırlar, yakınlık ihtiyacı gibi",
+        " temaları",
+        " ayrı bölüm YAZMADAN bu metinde doğal tek akışta veya ",
+        "kısa maddeler içinde;",
         " 5–12 cümle; yargılayıcı olma.\",",
       ].join(""),
       "  \"aboutYou\": [],",
@@ -562,7 +688,8 @@ export const analyzeSelfProfile = onCall(
       "",
       "Kurallar:",
       "- aboutYou hep boş dizi (eski uyumluluk alanıdır).",
-      "- Tekrarlayan ikinci blok YOK: ilişkiye dair ne söylenecekse hep summary içinde olsun.",
+      "- Tekrarlayan ikinci blok YOK:",
+      " ilişkiye dair ne söylenecekse hep summary içinde olsun.",
       "- gentleReminders isteğe bağlı; fazlaysa kısalt.",
       [
         "- traitBreakdown her zaman 5 eleman içersin",
@@ -590,7 +717,10 @@ export const analyzeSelfProfile = onCall(
       throw new HttpsError("internal", "Model JSON parse failed");
     }
 
-    if (typeof insight.summary !== "string" || !Array.isArray(insight.gentleReminders)) {
+    if (
+      typeof insight.summary !== "string" ||
+      !Array.isArray(insight.gentleReminders)
+    ) {
       throw new HttpsError("internal", "Model JSON shape invalid");
     }
 
@@ -630,7 +760,7 @@ export const analyzeSelfProfile = onCall(
 );
 
 /**
- * Bir kullanıcı uyum puanını yayınladığında hedefe push bildirimi (FCM token gerekir).
+ * Uyum puanı oluşunca hedef kullanıcıya push (FCM token gerekir).
  */
 export const notifyTargetOnCompatibilityRating = onDocumentCreated(
   {
