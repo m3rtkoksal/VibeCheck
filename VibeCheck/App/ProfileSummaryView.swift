@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 
 struct ProfileSummaryView: View {
@@ -8,6 +9,9 @@ struct ProfileSummaryView: View {
     @State private var isShowingCompatibility = false
     @Environment(\.colorScheme) private var colorScheme
     @StateObject private var discoverabilityVM = SettingsDetailViewModel()
+    @StateObject private var voiceSampleRecorder = ProfileVoiceSampleRecorder()
+    @State private var showVoiceRecordingSheet = false
+    @State private var hasVoiceProfileInsight = false
 
     init(selections: [String: String]) {
         self.initialSelections = selections
@@ -33,11 +37,34 @@ struct ProfileSummaryView: View {
             // Prefer fresh values; fixes empty summary when destination was constructed early.
             let fresh = ProfileEditorView.selectionsDictionary()
             selections = fresh.isEmpty ? initialSelections : fresh
+            voiceSampleRecorder.refreshSavedState()
+            refreshVoiceInsightState()
             discoverabilityVM.syncFromFirebaseUser()
             Task { await discoverabilityVM.syncDiscoverabilityIndex() }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .voiceProfileInsightDidUpdate)) { _ in
+            refreshVoiceInsightState()
+        }
+        .alert("Ses Kaydı", isPresented: Binding(
+            get: { voiceSampleRecorder.errorMessage != nil },
+            set: { if !$0 { voiceSampleRecorder.errorMessage = nil } }
+        )) {
+            Button("Tamam") {
+                voiceSampleRecorder.errorMessage = nil
+            }
+        } message: {
+            Text(voiceSampleRecorder.errorMessage ?? "")
+        }
         .navigationDestination(isPresented: $isShowingCompatibility) {
             SelfProfileAnalysisView()
+        }
+        .sheet(isPresented: $showVoiceRecordingSheet) {
+            ProfileVoiceRecordingSheetView(
+                recorder: voiceSampleRecorder,
+                isPresented: $showVoiceRecordingSheet
+            )
+            .presentationDetents([.height(560), .large])
+            .presentationCornerRadius(32)
         }
         .safeAreaInset(edge: .bottom) {
             Button {
@@ -88,6 +115,8 @@ struct ProfileSummaryView: View {
             .frame(maxWidth: .infinity)
             .padding(.top, 8)
 
+            profileVoiceAnalysisCard
+
             if selections.isEmpty {
                 profileSummaryEmptyState
             } else {
@@ -95,6 +124,159 @@ struct ProfileSummaryView: View {
             }
         }
         .frame(maxWidth: .infinity)
+    }
+
+    private var profileVoiceAnalysisCard: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ZStack(alignment: .topTrailing) {
+                Circle()
+                    .fill(Color(hex: 0xA78BFA).opacity(colorScheme == .dark ? 0.28 : 0.22))
+                    .frame(width: 120, height: 120)
+                    .blur(radius: 42)
+                    .offset(x: 36, y: -54)
+
+                VStack(alignment: .leading, spacing: 14) {
+                    HStack(alignment: .center, spacing: 8) {
+                        Image(systemName: "waveform")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(Color(hex: 0x6366F1))
+
+                        Text("Ses Analizi")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundStyle(.primary)
+
+                        Text("Opsiyonel")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(
+                                Capsule()
+                                    .fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.06))
+                            )
+                    }
+
+                    Text(
+                        "Sesinize dayalı karakter analizi için dilerseniz ses kaydı verebilirsiniz; "
+                            + "isteğe bağlıdır."
+                    )
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                    voiceMetricBadgesRow
+
+                    Button {
+                        showVoiceRecordingSheet = true
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: "mic.fill")
+                                .font(.system(size: 17, weight: .semibold))
+                            Text(voiceSampleRecorder.hasSampleOnDisk ? "Tekrar Kaydet" : "Ses Kaydet")
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .foregroundStyle(.white)
+                        .background(voiceRecordButtonBackground)
+                        .shadow(
+                            color: Color(hex: 0x6366F1).opacity(colorScheme == .dark ? 0.35 : 0.25),
+                            radius: 12,
+                            x: 0,
+                            y: 5
+                        )
+                    }
+                    .buttonStyle(.plain)
+
+                    if voiceSampleRecorder.hasSampleOnDisk && !voiceSampleRecorder.isRecording {
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(Color(hex: 0x22C55E))
+                                Text("Kayıt alındı.")
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            if hasVoiceProfileInsight {
+                                HStack(alignment: .top, spacing: 6) {
+                                    Image(systemName: "waveform.circle.fill")
+                                        .foregroundStyle(Color(hex: 0x6366F1))
+                                        .font(.system(size: 13))
+                                    Text(
+                                        "Ses özeti oluşturuldu; gelecek analiz güncellemelerinde kullanılabilir."
+                                    )
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding(18)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .background(
+            HarmonyPanelChrome.panelBackdrop(cornerRadius: 20, colorScheme: colorScheme)
+                .shadow(color: HarmonyPanelChrome.cardShadow(colorScheme: colorScheme), radius: 14, x: 0, y: 6)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .strokeBorder(Color.white.opacity(colorScheme == .dark ? 0.09 : 0.45), lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .frame(maxWidth: .infinity)
+    }
+
+    private var voiceMetricBadgesRow: some View {
+        LazyVGrid(
+            columns: [GridItem(.adaptive(minimum: 104), spacing: 8)],
+            alignment: .leading,
+            spacing: 8
+        ) {
+            voiceMetricBadge(title: "Enerji", dot: Color(hex: 0xFB923C))
+            voiceMetricBadge(title: "Tonalite", dot: Color(hex: 0x38BDF8))
+            voiceMetricBadge(title: "Prosodi", dot: Color(hex: 0xA78BFA))
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func voiceMetricBadge(title: String, dot: Color) -> some View {
+        HStack(spacing: 6) {
+            Circle()
+                .fill(dot)
+                .frame(width: 6, height: 6)
+            Text(title.uppercased())
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(.primary)
+                .tracking(0.3)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Color.primary.opacity(colorScheme == .dark ? 0.1 : 0.04))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .strokeBorder(Color.white.opacity(colorScheme == .dark ? 0.08 : 0.55), lineWidth: 1)
+        )
+    }
+
+    private var voiceRecordButtonBackground: some View {
+        let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
+        return ZStack {
+            shape.fill(
+                LinearGradient(
+                    colors: [Color(hex: 0x6366F1), Color(hex: 0xA855F7)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+            shape.fill(Material.ultraThinMaterial.opacity(colorScheme == .dark ? 0.22 : 0.14))
+            shape.strokeBorder(Color.white.opacity(0.35), lineWidth: 1)
+        }
     }
 
     private var profileSummaryEmptyState: some View {
@@ -178,6 +360,10 @@ struct ProfileSummaryView: View {
             .map { ($0, normalized[$0] ?? "") }
         result.append(contentsOf: remaining)
         return result
+    }
+
+    private func refreshVoiceInsightState() {
+        hasVoiceProfileInsight = VoiceProfileInsightStore.load() != nil
     }
 }
 

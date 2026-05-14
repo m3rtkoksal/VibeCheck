@@ -37,7 +37,7 @@
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Sesli notunu metne çevirmek için mikrofon iznine ihtiyaç var.</string>
+	<string>Mikrofon; sesli not, isteğe bağlı kısa ses analizi için kullanılabilir.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Konuşmanı yazıya dönüştürüp not alanına eklemek için konuşma tanıma izni gerekiyor.</string>
 	<key>UIBackgroundModes</key>

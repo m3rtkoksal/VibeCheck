@@ -38,9 +38,14 @@
 		9440896AEA69777CCFA88371 /* FriendlyCallableError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CE588AA5B7EF3B30BE543E2 /* FriendlyCallableError.swift */; };
 		A1893C772CE0DFFEA67A2D29 /* AuthProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C42B59B5CDDCBE0B5E598A1B /* AuthProvider.swift */; };
 		A1B2C3D42F91000000000001 /* HarmonyPanelChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D42F91000000000002 /* HarmonyPanelChrome.swift */; };
+		A1CB00032F91320003000043 /* ProfileVoiceRecordingSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CB00012F91320003000041 /* ProfileVoiceRecordingSheetView.swift */; };
+		A1CB00042F91320003000044 /* ProfileVoiceSampleRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CB00022F91320003000042 /* ProfileVoiceSampleRecorder.swift */; };
 		A6D425A62FAB3D37006EC420 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = A6D425A52FAB3D37006EC420 /* GoogleService-Info.plist */; };
 		A7139F562F001A4CB7E89202 /* HelpSupportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7139F562F001A4CB7E89201 /* HelpSupportView.swift */; };
 		B128B4000E233A43F3DD7E38 /* ProfileSetupFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00ECDD4DAA718CF12BACC78 /* ProfileSetupFlowView.swift */; };
+		B1CD00042F91320007000104 /* VoiceReadingPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1CD00012F91320007000101 /* VoiceReadingPrompt.swift */; };
+		B1CD00052F91320007000105 /* VoiceProfileInsightStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1CD00022F91320007000102 /* VoiceProfileInsightStore.swift */; };
+		B1CD00062F91320007000106 /* VoiceAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1CD00032F91320007000103 /* VoiceAnalysisService.swift */; };
 		B424FD658207159DF90FBBD0 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 6096CD9753F3C7C531F2520D /* FirebaseAuth */; };
 		B7C8DE8CAC85AD95E68F1DE7 /* ProfileSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D4AE98C10BC6002776520E /* ProfileSummaryView.swift */; };
 		C7BCA7DBB05CBFBFA18DF626 /* PrivateNoteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 916C3392BA3BF9597A1FA246 /* PrivateNoteView.swift */; };
@@ -87,8 +92,13 @@
 		9957680C0FDCD4B5759272A5 /* ProfilePhotoStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePhotoStore.swift; sourceTree = "<group>"; };
 		9C409CE2A97FE76E0ABA07A1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A1B2C3D42F91000000000002 /* HarmonyPanelChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HarmonyPanelChrome.swift; sourceTree = "<group>"; };
+		A1CB00012F91320003000041 /* ProfileVoiceRecordingSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileVoiceRecordingSheetView.swift; sourceTree = "<group>"; };
+		A1CB00022F91320003000042 /* ProfileVoiceSampleRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileVoiceSampleRecorder.swift; sourceTree = "<group>"; };
 		A6D425A52FAB3D37006EC420 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		A7139F562F001A4CB7E89201 /* HelpSupportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpSupportView.swift; sourceTree = "<group>"; };
+		B1CD00012F91320007000101 /* VoiceReadingPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceReadingPrompt.swift; sourceTree = "<group>"; };
+		B1CD00022F91320007000102 /* VoiceProfileInsightStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceProfileInsightStore.swift; sourceTree = "<group>"; };
+		B1CD00032F91320007000103 /* VoiceAnalysisService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceAnalysisService.swift; sourceTree = "<group>"; };
 		BBEA28186AC1614EA868AA52 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BD05BA20B44FED2FF8AF5ED0 /* VibeCheckApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VibeCheckApp.swift; sourceTree = "<group>"; };
 		C42B59B5CDDCBE0B5E598A1B /* AuthProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthProvider.swift; sourceTree = "<group>"; };
@@ -158,6 +168,9 @@
 				6DA3D7AE702C22A7DEC23195 /* LottieAnimationPlayer.swift */,
 				B8392A042F9144AA00EEBE01 /* MainTabView */,
 				E4E5F9012F90500000000002 /* MeshAuroraBackgroundView.swift */,
+				B1CD00032F91320007000103 /* VoiceAnalysisService.swift */,
+				B1CD00022F91320007000102 /* VoiceProfileInsightStore.swift */,
+				B1CD00012F91320007000101 /* VoiceReadingPrompt.swift */,
 				F71BC7E3BE688CDB57AF538D /* OnboardingView.swift */,
 				93B3E0032F90410000000002 /* IncomingCompatibilityRatingsInboxView.swift */,
 				93B3E0042F90410000000003 /* PushNotificationsCoordinator.swift */,
@@ -168,6 +181,8 @@
 				F00ECDD4DAA718CF12BACC78 /* ProfileSetupFlowView.swift */,
 				1D84CA0A6AC8378685498821 /* ProfileSnapshot.swift */,
 				64D4AE98C10BC6002776520E /* ProfileSummaryView.swift */,
+				A1CB00012F91320003000041 /* ProfileVoiceRecordingSheetView.swift */,
+				A1CB00022F91320003000042 /* ProfileVoiceSampleRecorder.swift */,
 				8B09809B8DEA1E61645B1CF0 /* QRImage.swift */,
 				D82BDAF97F868B56534A8EAA /* SelfProfileAnalysisView.swift */,
 				FDEF90455119BDD43FFD907C /* SelfProfileInsightDashboardView.swift */,
@@ -353,6 +368,8 @@
 				B128B4000E233A43F3DD7E38 /* ProfileSetupFlowView.swift in Sources */,
 				F92417A377B2A4DCB74D7A35 /* ProfileSnapshot.swift in Sources */,
 				B7C8DE8CAC85AD95E68F1DE7 /* ProfileSummaryView.swift in Sources */,
+				A1CB00032F91320003000043 /* ProfileVoiceRecordingSheetView.swift in Sources */,
+				A1CB00042F91320003000044 /* ProfileVoiceSampleRecorder.swift in Sources */,
 				4AC33E15EAC20FA37A36E567 /* QRImage.swift in Sources */,
 				224C0B5AA3587BFB09046A21 /* SelfProfileAnalysisView.swift in Sources */,
 				E35259E2546666AB4FAB07C3 /* SelfProfileInsightDashboardView.swift in Sources */,
@@ -363,6 +380,9 @@
 				ED2D912864C5A234132A7457 /* SettingsTabView.swift in Sources */,
 				FC01D0012F902A4CB7E89210 /* SubscriptionManagementView.swift in Sources */,
 				F03D5E188AB3C1984C4441D4 /* ThemeSelectionView.swift in Sources */,
+				B1CD00062F91320007000106 /* VoiceAnalysisService.swift in Sources */,
+				B1CD00052F91320007000105 /* VoiceProfileInsightStore.swift in Sources */,
+				B1CD00042F91320007000104 /* VoiceReadingPrompt.swift in Sources */,
 				44C3816CEE989BA6CBCE6E67 /* UIApplication+TopViewController.swift in Sources */,
 				8A20AEEE7BFC749B7A94B06A /* VibeCheckApp.swift in Sources */,
 				1B726C39C3AFFB15E53DF09D /* VibeCode.swift in Sources */,
@@ -379,7 +399,7 @@
 				CODE_SIGN_ENTITLEMENTS = VibeCheck/VibeCheck.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 1;
 				DEPLOYMENT_POSTPROCESSING = NO;
 				DEVELOPMENT_TEAM = 79G38KD48M;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -395,7 +415,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.5;
+				MARKETING_VERSION = 1.0.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mikatech.vibecheck.ios;
 				PRODUCT_NAME = VibeCheck;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -533,7 +553,7 @@
 				CODE_SIGN_ENTITLEMENTS = VibeCheck/VibeCheck.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 1;
 				DEPLOYMENT_POSTPROCESSING = NO;
 				DEVELOPMENT_TEAM = 79G38KD48M;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -549,7 +569,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.5;
+				MARKETING_VERSION = 1.0.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mikatech.vibecheck.ios;
 				PRODUCT_NAME = VibeCheck;
 				PROVISIONING_PROFILE_SPECIFIER = "";

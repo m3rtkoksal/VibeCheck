@@ -4,6 +4,7 @@ import {onCall, HttpsError} from "firebase-functions/v2/https";
 import {onDocumentCreated} from "firebase-functions/v2/firestore";
 import * as logger from "firebase-functions/logger";
 import * as admin from "firebase-admin";
+import OpenAI, {APIError} from "openai";
 
 setGlobalOptions({maxInstances: 10});
 
@@ -347,6 +348,173 @@ async function callOpenAIJson(args: {
   }
 
   throw new HttpsError("internal", "OpenAI response missing text");
+}
+
+type AIVoiceProfileInsight = {
+  transcript: string;
+  summary: string;
+  signals: string[];
+  energyPerspective: string;
+  tonePerspective: string;
+  pacingPerspective: string;
+};
+
+/** Ham ses üst boyutu (~1.5 MiB); iOS ile uyumlu. */
+const MAX_VOICE_UPLOAD_BYTES = 1_572_864;
+
+/**
+ * Whisper yok — Chat Completions + ham ses WAV (gpt-4o-audio multimodal giriş).
+ */
+const VOICE_MULTIMODAL_MODEL = "gpt-4o-audio-preview";
+
+/**
+ * OpenAI multimodal WAV girdisi: RIFF/WAVE başlığı.
+ *
+ * input_audio bicimi yalnizca wav/mp3 dir; uygulama PCM WAV gornderir.
+ *
+ * @param {Buffer} buf Ham dosya.
+ * @return {boolean} WAV ise true.
+ */
+function bufferLooksLikeWav(buf: Buffer): boolean {
+  if (buf.length < 12) return false;
+  const riff = buf.toString("ascii", 0, 4);
+  const wave = buf.toString("ascii", 8, 12);
+  return riff === "RIFF" && wave === "WAVE";
+}
+
+/**
+ * Ses profili multimodal çağrılarında OpenAI hatalarını iletiye çevirir.
+ *
+ * @param {APIError} e SDK hatası — bu fonksiyon asla düzgün çıkış dönmez.
+ */
+function voiceProfileOpenAiVoiceError(e: APIError): never {
+  logger.error("OpenAI voice multimodal error", {
+    status: e.status,
+    message: e.message,
+    code: e.code,
+  });
+  if (e.status === 401) {
+    throw new HttpsError(
+      "failed-precondition",
+      "OpenAI anahtarı geçersiz."
+    );
+  }
+  if (
+    e.status === 429 &&
+    (e.code === "insufficient_quota" ||
+      e.message.toLowerCase().includes("quota"))
+  ) {
+    throw new HttpsError(
+      "resource-exhausted",
+      "OpenAI kotasi yetersiz; OpenAI hesabinda billing/limiti kontrol et."
+    );
+  }
+  const openAiMsg = e.message.trim();
+  const fallback =
+    "Ses işlenemedi; WAV ya da multimodal erişimi kontrol edin.";
+  const detail =
+    openAiMsg.length > 0 && openAiMsg.length < 280 ?
+      `Ses işlenemedi (${openAiMsg})` :
+      fallback;
+  throw new HttpsError("invalid-argument", detail);
+}
+
+/**
+ * Ham WAV ile duygu/atmosfer içgörüsü (tek model çağrısı).
+ *
+ * Kelime dizme / Whisper / transkripsiyon yapılmıyor; model sesten turar.
+ *
+ * @param {object} args Parametre.
+ * @param {string} args.apiKey Anahtar.
+ * @param {string} args.system Sistem iletisi.
+ * @param {string} args.userText Kullanıcı metni (bağlam + şema kuralları).
+ * @param {Buffer} args.wavBuffer Ham WAV içeriği.
+ * @return {Promise<string>} JSON metin çıktısı.
+ */
+async function callVoiceCharacterFromAudio(args: {
+  apiKey: string;
+  system: string;
+  userText: string;
+  wavBuffer: Buffer;
+}): Promise<string> {
+  const client = new OpenAI({apiKey: args.apiKey});
+
+  try {
+    const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+      {role: "system", content: args.system},
+      {
+        role: "user",
+        content: [
+          {type: "text", text: args.userText},
+          {
+            type: "input_audio",
+            input_audio: {
+              data: args.wavBuffer.toString("base64"),
+              format: "wav",
+            },
+          },
+        ],
+      },
+    ];
+
+    const baseBody = {
+      model: VOICE_MULTIMODAL_MODEL,
+      modalities: ["text"] as Array<"text" | "audio">,
+      messages,
+      temperature: 0.35,
+      max_completion_tokens: 1200,
+    };
+
+    let completion: OpenAI.Chat.Completions.ChatCompletion;
+    try {
+      completion = await client.chat.completions.create({
+        ...baseBody,
+        response_format: {type: "json_object"},
+      });
+    } catch (firstErr) {
+      if (firstErr instanceof APIError &&
+        Number(firstErr.status) === 400) {
+        logger.warn("voice multimodal json_object uyusmadi yeniden deneniyor", {
+          detail: firstErr.message,
+        });
+        completion =
+          await client.chat.completions.create(baseBody);
+      } else if (firstErr instanceof APIError) {
+        voiceProfileOpenAiVoiceError(firstErr);
+      } else if (firstErr instanceof HttpsError) {
+        throw firstErr;
+      } else {
+        logger.error(
+          "OpenAI voice ilk deneme beklenmedik",
+          {err: String(firstErr)}
+        );
+        throw new HttpsError(
+          "internal",
+          "Ses analizi beklenmedik şekilde başarısız oldu."
+        );
+      }
+    }
+
+    const rawContent =
+      completion.choices[0]?.message?.content?.trim() ?? "";
+    if (!rawContent.length) {
+      throw new HttpsError(
+        "internal",
+        "Model ses analizi için metin çıktısı döndürmedi."
+      );
+    }
+
+    return rawContent;
+  } catch (e) {
+    if (e instanceof HttpsError) throw e;
+    if (e instanceof APIError) voiceProfileOpenAiVoiceError(e);
+
+    logger.error("OpenAI voice unexpected error", {err: String(e)});
+    throw new HttpsError(
+      "internal",
+      "Ses analizi beklenmedik şekilde başarısız oldu."
+    );
+  }
 }
 
 /**
@@ -756,6 +924,221 @@ export const analyzeSelfProfile = onCall(
       gentleReminders: insight.gentleReminders,
       traitBreakdown: insight.traitBreakdown,
     };
+  }
+);
+
+/**
+ * Callable: WAV kaydı + çok kanallı modelden nazik ses-atmosfer içgörüsü.
+ */
+
+export const analyzeVoiceProfile = onCall(
+  {
+    region: "europe-west1",
+    secrets: [openaiApiKey],
+    enforceAppCheck: false,
+    memory: "512MiB",
+    timeoutSeconds: 120,
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Giriş gerekli");
+    }
+
+    const data = request.data as {
+      audioBase64?: string;
+      readingPrompt?: string;
+    };
+
+    const b64 = (data.audioBase64 ?? "").trim();
+    if (!b64.length) {
+      throw new HttpsError("invalid-argument", "audioBase64 zorunlu");
+    }
+
+    let buf: Buffer;
+    try {
+      buf = Buffer.from(b64, "base64");
+    } catch (_e) {
+      throw new HttpsError("invalid-argument", "Geçersiz base64");
+    }
+    if (buf.byteLength === 0) {
+      throw new HttpsError("invalid-argument", "Boş ses verisi");
+    }
+    if (buf.byteLength > MAX_VOICE_UPLOAD_BYTES) {
+      throw new HttpsError(
+        "invalid-argument",
+        "Ses kaydı çok büyük; daha kısa kayıt veya sıkıştırma dene."
+      );
+    }
+
+    if (!bufferLooksLikeWav(buf)) {
+      throw new HttpsError(
+        "invalid-argument",
+        [
+          "Ses dosyası PCM WAV bekleniyor; uygulamayı güncelleyip ",
+          "yeniden kayıt yap.",
+        ].join("")
+      );
+    }
+
+    const apiKey = openaiApiKey.value();
+    if (!apiKey) {
+      throw new HttpsError(
+        "failed-precondition",
+        "OPENAI_API_KEY yok"
+      );
+    }
+
+    const readingPrompt = (data.readingPrompt ?? "").trim().slice(0, 4000);
+
+    const system = [
+      "Ses kaydından doğrudan hareketle nazik iletişim hissiyatı özeti ver.",
+      "Sıcaklık mesafe hissini, gevşemiş veya gergin yönleri ve ",
+      "ritim durak hissini süz;",
+      "yaklaşık duygu yönüdür kesin yüzölçüm bilimi iddia etme.",
+      "Kelimesi kelimesine yazılı döküm üretme;",
+      "`transcript` hep boş kalsın, model yazsa bile sunucu sıfırlayacaktır.",
+      "Türkçe, destekleyici, yargısız ol.",
+      "Kesin hastalık teşhisi veya zehirli kişilik damgası kullanma.",
+    ].join(" ");
+
+    const readingBlock =
+      readingPrompt.length > 0 ?
+        [
+          "",
+          "Kayıtta kullanıcı aşağı kalıpla okumuş olabilir;",
+          "yalnızca bağlam fikri ver:",
+          "",
+          readingPrompt,
+          "",
+        ].join("\n") :
+        "";
+
+    const userText = [
+      "Hareket noktan dalga içeriği; metin çıkartan Whisper gibi araç yok.",
+      readingBlock.trim(),
+      "",
+      "Özgün olarak duyuran cümleleri tam metne çevirme.",
+      "Tek JSON nesnesi döndür. Alanlar:",
+      "- transcript hep bos string olarak",
+      "- summary",
+      "- signals",
+      "- energyPerspective",
+      "- tonePerspective",
+      "- pacingPerspective",
+      "",
+      "Şema şablon:",
+      "{",
+      "  \"transcript\": \"\",",
+      [
+        "  \"summary\":\"Türkçe 2–3 cümle: duygusal/atmosferik ",
+        "iletişim özeti\",",
+      ].join(""),
+      "  \"signals\": [\"madde 1\", \"madde 2\", \"madde 3\",",
+      "\"madde 4\"],",
+      [
+        "  \"energyPerspective\":\"Türkçe 1–2 cümle: ritim ve enerji hissine ",
+        "dair yumuşak gözlem\",",
+      ].join(""),
+
+      [
+        "  \"tonePerspective\":\"Türkçe 1–2 cümle: sıcaklık ile ",
+        "mesafe hissine ilişkin yumuşak gözlem\",",
+      ].join(""),
+
+      [
+        "  \"pacingPerspective\":\"Türkçe 1–2 cümle: ritim;",
+        " durak hissine ilişkin bir gözlem\"",
+      ].join(""),
+
+      "}",
+      "",
+      "signals 3 ile 8 arası tekilleştir;",
+      "yargılayıcı konuşma; destek üslubu.",
+    ].join("\n");
+
+    const jsonText = await callVoiceCharacterFromAudio({
+      apiKey,
+      system,
+      userText,
+      wavBuffer: buf,
+    });
+
+    interface VoiceModelJsonShape {
+      summary?: unknown;
+      signals?: unknown;
+      energyPerspective?: unknown;
+      tonePerspective?: unknown;
+      pacingPerspective?: unknown;
+    }
+
+    let parsed: VoiceModelJsonShape;
+    try {
+      parsed = JSON.parse(jsonText) as VoiceModelJsonShape;
+    } catch (e) {
+      logger.error("voice profile JSON parse failed", {jsonText, e});
+      throw new HttpsError("internal", "Model JSON parse failed");
+    }
+
+    const summaryOk =
+      typeof parsed.summary === "string" ?
+        parsed.summary.trim() :
+        "";
+
+    let signalsArr: string[] = [];
+    const rawSignals = parsed.signals;
+    if (Array.isArray(rawSignals)) {
+      signalsArr = rawSignals
+        .filter(
+          (s: unknown): s is string =>
+            typeof s === "string" && s.trim().length > 0
+        )
+        .map((x: string) => x.trim())
+        .slice(0, 12);
+    }
+    const ep =
+      typeof parsed.energyPerspective === "string" ?
+        parsed.energyPerspective.trim() :
+        "";
+    const tp =
+      typeof parsed.tonePerspective === "string" ?
+        parsed.tonePerspective.trim() :
+        "";
+    const pp =
+      typeof parsed.pacingPerspective === "string" ?
+        parsed.pacingPerspective.trim() :
+        "";
+
+    if (
+      !summaryOk.length ||
+      !ep.length ||
+      !tp.length ||
+      !pp.length
+    ) {
+      throw new HttpsError("internal", "Model JSON shape invalid");
+    }
+
+    if (signalsArr.length === 0) {
+      signalsArr = ["İç görü oluşturmak için yeterince sinyal üretilemedi."];
+    }
+    if (signalsArr.length > 8) {
+      signalsArr = signalsArr.slice(0, 8);
+    }
+
+    const out: AIVoiceProfileInsight = {
+      transcript: "",
+      summary: summaryOk,
+      signals: signalsArr,
+      energyPerspective: ep,
+      tonePerspective: tp,
+      pacingPerspective: pp,
+    };
+
+    logger.info("Voice profile analyzed", {
+      uid: request.auth.uid,
+      bytesIn: buf.byteLength,
+    });
+
+    return out;
   }
 );
 
